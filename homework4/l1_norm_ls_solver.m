@@ -55,12 +55,11 @@ for ntiter = 0:max_iter
     % check result
     fprintf('%4d %12.2e %15.5e %15.5e %15.5e\n',...
         ntiter, gap, pobj, dobj, gap / dobj);
-
+    history(ntiter + 1, :) = [ntiter, gap, pobj, dobj, gap / dobj];
     if (gap / dobj < reltol) 
         status  = 'Solved';
-        history(ntiter + 1, :) = [ntiter, gap, pobj, dobj, gap / dobj];
         fprintf('Absolute tolerance reached.\n');
-        return;
+        break;
     end
     
     % update t
@@ -101,10 +100,11 @@ for ntiter = 0:max_iter
             end
         end
         s = nu2 * s;
-    end
-%     if (iter == max_iter_linesearch) break;     
+    end   
     beta = new_beta; 
     u = new_u;
 end
+
+history = history(1:(ntiter + 1), :);
 
 

@@ -20,7 +20,16 @@ V = @(a) norm(y - X * a, 2) ^ 2 + lambda * norm(a, 1);
 aopt = fminunc(V, a0);
 
 %% implement my own algorithm
-% beta = l1_norm_ls_solver_pcg(X, y, lambda);
-beta = l1_norm_ls_solver(X, y, lambda);
+[beta, status, history] = l1_norm_ls_solver(X, y, lambda);
+
+%% show figures
+hold on;
+figure(1);
+plot(history(:, 1), log(history(:, 2)), 'r');
+plot(history(:, 1), log(history(:, 3)), 'g');
+plot(history(:, 1), log(history(:, 4)), 'b');
+legend('duality gap', 'primobj', 'dualobj', 'M=9')
+hold off;
+
 
 
