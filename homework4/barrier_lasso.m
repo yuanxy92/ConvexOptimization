@@ -1,3 +1,4 @@
+%% clear
 clear;
 close all;
 fclose all;
@@ -34,5 +35,9 @@ plot(history(:, 1), log(history(:, 4)), 'b*-');
 legend('duality gap', 'primobj', 'dualobj')
 hold off;
 
+%% compare with matlab fminunc
+error = aopt - beta;
+fprintf('Difference with matlab fminunc:\nerror=');
+disp(error);
 
 
