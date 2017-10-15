@@ -31,7 +31,7 @@ reltol = 1e-3;
 u = ones(p, 1);
 beta = zeros(p, 1);
 dobj = -Inf;
-history = [];
+history = zeros(100, 5);
 
 fprintf('\nSolving a problem of size (n=%d, p=%d), with lambda=%.5e\n',...
             n, p, lambda);
@@ -58,7 +58,7 @@ for ntiter = 0:max_iter
 
     if (gap / dobj < reltol) 
         status  = 'Solved';
-%         history = [pobjs-dobjs; pobjs; dobjs; sts; pitrs; pflgs];
+        history(ntiter + 1, :) = [ntiter, gap, pobj, dobj, gap / dobj];
         fprintf('Absolute tolerance reached.\n');
         return;
     end
