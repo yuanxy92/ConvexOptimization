@@ -260,7 +260,7 @@ As presented in Fig.~\ref{fig:separable_kernel}, where $odot$ is element-wise pr
 The image priors proposed in Section.~\ref{subsec:image_prior} are very simple statistics, which can be solved by existing optimization techniques but have many failure cases unavoidably. Thus, some researchers proposed to use neural network as image prior. In this report, I introduce a non-iterative neural approach.
 
 ~\\
-\textbf{\emph{Non-iterative Neural Approach}}\cite{chakrabarti2016neural}: the methods in Section.~\ref{subsec:image_prior} derive latent sharp image $\mathbf{l}$ update rule from objective functions and the image priors are used as an image sharpness measure. However, it is infeasible for neural network priors because of its high-complexity. Therefore, this paper proposed to train a neural network to update the latent sharp image  $\mathbf{l}$ directly, as shown in Fig.~\ref{fig:non_iterative_nn}.
+\textbf{\emph{Non-iterative Neural Approach}}\cite{chakrabarti2016neural}: the methods in Section.~\ref{subsec:image_prior} derive latent sharp image $\mathbf{l}$ update rule from objective functions and the image priors are used as an image sharpness measure. However, it is infeasible for neural network priors because of its high-complexity. Therefore, this paper proposed to train a neural network to update the latent sharp image  $\mathbf{l}$ directly, as shown in Fig.~\ref{fig:non_iterative_nn}. The neural network takes blurred image patches as input and output the filter coefficients of kernel directly. After estimating the kernel, the final deblurred result can be obtained by state-of-the-art non-blind deblurring algorithm.
 \begin{figure}[h!]
 \centering
 \subfloat[pipeline]{\includegraphics[width = 0.46\textwidth]{pic/non_iterative_neural_approach_pipeline.png}}
@@ -272,8 +272,30 @@ The image priors proposed in Section.~\ref{subsec:image_prior} are very simple s
 \end{figure}
 This method is non-iterative and highly parallable, which is friendly to GPU hardware.
 
+
 \section{Preliminary Ideas}
-After reading these papers, I find two 
+After reading these papers, I find the following rules:
+\begin{enumerate}
+\item Good image prior is vital for image deblurring, but good image priors are non-convex and difficult to solve. The deblurring performance of simple convex image prior like $\|\nabla \mathbf{l}\|_2^2$ and $\|\nabla \mathbf{l}\|_1$ is really poor.
+\item Noise and fake branches in kernel can cause severe visual artifacts in deblurring results.
+\item Current optimization algorithms can only handle relative simple priors. However, no simple prior is robust enough to handle all the images well. 
+\item In deblurring algorithm, there is usually no optimization stopping criteria because it is not easy to measure the quality of deblurring result. Therefore, usually fixed number of iterations is used for every input image. Sometimes, the deblurring image/kernel becomes worse after more iterations.
+\end{enumerate}
+
+In this report, I first plan to apply some algorithms learned in class on image deblurring algorithm and compared with that published in papers. After that, I will try to improve the algorithm. 
+Some preliminary ideas:
+\begin{enumerate}
+\item try to use multiple image priors which could help each other to reduce failure cases.
+\item try to find some good stopping criteria for image deblurring algorithm.
+\item ...
+\end{enumerate}
+
+
+
+
+
+ 
+ 
 
 
 % http://www.michaelshell.org/tex/ieeetran/bibtex/
