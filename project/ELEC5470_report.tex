@@ -153,10 +153,21 @@ Eqn.~\ref{eqn:hyper_laplacian} can be divided into two sub-optimization problems
 \end{cases}
 \label{eqn:hyper_laplacian}
 \end{equation}
-The first minimization problem if Eqn.~\ref{eqn:hyper_laplacian} is a least-square problem which has closed-form solution:
+The first minimization problem if Eqn.~\ref{eqn:hyper_laplacian} is a least-square problem which has closed-form solution. The second problem is difficult, so this paper used a lookup table solution. Besides, for some specific $\alpha = 0.5, 0.66$, exact analytical solutions can be found.
+
+\textbf{\emph{Unnatural $L_0$ Sparsity Prior}}\cite{xu2013unnatural}: this paper proposed a blind image blurring algorithm with objective function as follows:
 \begin{equation}
-\mathbf{l} = \mathcal{F}^{-1} \left( \frac{num}{den} \right)
-\label{eqn:closed_form_least_square}
+\min_{\mathbf{l}, \mathbf{k}} \| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda \|\nabla \mathbf{l} \|_0 + \mu \| \mathbf{k} \|_2^2.
+\label{eqn:l0_sparse}
+\end{equation}
+Similar as the last paper, this large optimization problem can be re-formulated into 3 small optimizations and solved alternatively:
+\begin{equation}
+\begin{cases}
+\min_{\mathbf{l}} &\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l} - \mathbf{g}\|_2^2 \\
+\min_{\mathbf{g}} &\lambda_1\|\nabla \mathbf{l} - \mathbf{g}\|_2^2 + \lambda_2\|\mathbf{g}\|_{0} \\
+\min_{\mathbf{k}} &\| \nabla\mathbf{b} - \nabla\mathbf{l} \otimes \mathbf{k} \|_2^2 + \mu \|k\|_2^2
+\end{cases}
+\label{eqn:l0_sparse_alter}
 \end{equation}
 
 
