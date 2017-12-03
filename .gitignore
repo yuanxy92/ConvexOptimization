@@ -1,3 +1,7 @@
-.asv
-cvx/
+
 *.asv
+*.pdf
+*.zip
+*.jpg
+*.png
+cvx/

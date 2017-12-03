@@ -101,13 +101,13 @@ To solve the problem is Fig.~\ref*{fig:simple_inverse_filter}(b), existing state
 \label{eqn:blind_with_prior}
 \end{equation}
 
-Usually, Eqn.~\ref{eqn:blind_with_prior} will be split into two minimization problems and solve  $\mathbf{l}$ and $\mathbf{k}$ alternatively:
+Usually, Eqn.~\ref{eqn:blind_with_prior} will be split into two minimization problems and solve  $\mathbf{l}$ and $\mathbf{k}$ alternately:
 \begin{equation}
 \begin{cases}
 \min_{\mathbf{l}}&\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \| + \lambda\phi(\mathbf{l}) \\
 \min_{\mathbf{k}}&\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \| + \mu \rho(\mathbf{k})
 \end{cases}
-\label{eqn:blind_with_prior_alternative}
+\label{eqn:blind_with_prior_alternate}
 \end{equation}
 Nowadays, the image are very large. For example, a smart phone with $12$MP could capture $3968 \times 2976$ images, which means usually very large kernels are needed to estimate (larger than $120 \times 120$). To directly estimate a variable with so high dimension is very difficult, so most blind deblurring algorithms choose a multi-scale coarse-to-fine approach: estimating a smalling kernel using low resolution image first and resizing to high resolution as the initial value.
 
@@ -135,7 +135,7 @@ As mentioned above, I formulate the image deblurring objective function as follo
 \label{eqn:objective_funtion}
 \end{equation}
 ~\\
-\textbf{\emph{Hyper-laplacian Prior}}\cite{krishnan2009fast}: this paper proposed a excellent non-blind image deblurring algorithm. Kernel is already given in non-blind deblurring so only need to solve the first problem in Eqn.~\ref{eqn:blind_with_prior_alternative}. A hyper-laplacian image prior $\phi(\mathbf{l}) = \|\nabla \mathbf{l}\|_{\alpha}$ is proposed in this paper. As shown in Fig.~\ref{fig:hyper_laplacian}, the dark blue curve denotes the empirical image gradient distribution of natural images. The reason why hyper-laplacian is proposed is that the curve shape of  hyper-laplacian (green) is closet to the empirical one (dark blue). 
+\textbf{\emph{Hyper-laplacian Prior}}\cite{krishnan2009fast}: this paper proposed a excellent non-blind image deblurring algorithm. Kernel is already given in non-blind deblurring so only need to solve the first problem in Eqn.~\ref{eqn:blind_with_prior_alternate}. A hyper-laplacian image prior $\phi(\mathbf{l}) = \|\nabla \mathbf{l}\|_{\alpha}$ is proposed in this paper. As shown in Fig.~\ref{fig:hyper_laplacian}, the dark blue curve denotes the empirical image gradient distribution of natural images. The reason why hyper-laplacian is proposed is that the curve shape of  hyper-laplacian (green) is closet to the empirical one (dark blue). 
 \begin{figure}[h!]
 \centering
 \includegraphics[width = 1\textwidth]{pic/hyper_laplacian.png}
@@ -148,7 +148,7 @@ However, solving the problem is still not trivial because the image prior $\phi(
 \min_{\mathbf{l}} \| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l} - \mathbf{g}\|_2^2 + \lambda_2\|\mathbf{g}\|_{\alpha}.
 \label{eqn:hyper_laplacian}
 \end{equation}
-Eqn.~\ref{eqn:hyper_laplacian} can be divided into two sub-optimization problems and solve alternatively:
+Eqn.~\ref{eqn:hyper_laplacian} can be divided into two sub-optimization problems and solve alternately:
 \begin{equation}
 \begin{cases}
 \min_{\mathbf{l}} &\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l} - \mathbf{g}\|_2^2 \\
@@ -171,7 +171,7 @@ The second problem is difficult, exact analytical solutions can only be found fo
 \min_{\mathbf{l}, \mathbf{k}} \| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda \|\nabla \mathbf{l} \|_0 + \mu \| \mathbf{k} \|_2^2.
 \label{eqn:l0_sparse}
 \end{equation}
-Similar as the hyper-laplacian prior paper, this large optimization problem can be re-formulated into 3 small sub-problems and solved alternatively. The kernel is estimated in gradient space $\nabla\mathbf{l}$, $\nabla\mathbf{b}$ to replace $\mathbf{l}$, $\mathbf{b}$, because estimating kernel in gradient space is more accurate\cite{cho2009fast}.
+Similar as the hyper-laplacian prior paper, this large optimization problem can be re-formulated into 3 small sub-problems and solved alternately. The kernel is estimated in gradient space $\nabla\mathbf{l}$, $\nabla\mathbf{b}$ to replace $\mathbf{l}$, $\mathbf{b}$, because estimating kernel in gradient space is more accurate\cite{cho2009fast}.
 \begin{equation}
 \begin{cases}
 \min_{\mathbf{l}} &\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l} - \mathbf{g}\|_2^2 \\
@@ -200,7 +200,7 @@ The key contribution of this paper is to solve the second sub-problem of Eqn.~\r
 \end{equation}
 
 ~\\
-\textbf{\emph{$L_0$ Regularized Intensity and Gradient Prior}}\cite{pan2014deblurring}: an extension of unnatural $L_0$ sparsity prior\cite{xu2013unnatural} used for text image deblurring: $\phi(\mathbf{l}) = \alpha\| \mathbf{l} \|_0 + \|\nabla \mathbf{l} \|$. The solving method is nearly the same as that in \cite{xu2013unnatural}, only needs more iterations to refine $\mathbf{l}$ and $\mathbf{\nabla \mathbf{l}}$ alternatively.
+\textbf{\emph{$L_0$ Regularized Intensity and Gradient Prior}}\cite{pan2014deblurring}: an extension of unnatural $L_0$ sparsity prior\cite{xu2013unnatural} used for text image deblurring: $\phi(\mathbf{l}) = \alpha\| \mathbf{l} \|_0 + \|\nabla \mathbf{l} \|$. The solving method is nearly the same as that in \cite{xu2013unnatural}, only needs more iterations to refine $\mathbf{l}$ and $\mathbf{\nabla \mathbf{l}}$ alternately.
 
 ~\\
 \textbf{\emph{Normalized Sparsity Prior $L_1/L_2$}} \cite{krishnan2011blind}: this paper proposed a image prior called normalized sparsity prior $\phi(\mathbf{l}) = \frac{\|\nabla\mathbf{l}\|_1}{\|\nabla\mathbf{l}\|_2}$, and the objective function becomes:
