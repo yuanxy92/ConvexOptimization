@@ -161,7 +161,7 @@ Eqn.~\ref{eqn:hyper_laplacian} can be divided into two sub-optimization problems
 \end{cases}
 \label{eqn:hyper_laplacian_alter}
 \end{equation}
-The first minimization problem if Eqn.~\ref{eqn:hyper_laplacian} is a least-square problem which has closed-form solution:
+The first minimization problem if Eqn.~\ref{eqn:hyper_laplacian_alter} is a least-square problem which has closed-form solution:
 \begin{equation}
 \mathbf{l} = \mathcal{F}^{-1} \left( \frac{\overline{\mathcal{F}(\mathbf{k})}\mathcal{F}(\mathbf{b}) + \lambda_1F_G}
 {\overline{\mathcal{F}(\mathbf{k})}\mathcal{F}(\mathbf{k}) + \lambda_1\overline{\mathcal{F}(\nabla)}\mathcal{F}(\nabla)} \right),
@@ -324,18 +324,56 @@ In this section, I will present some new contributions of my report.
 \subsection{New Implementation of $L_0$ Sparse Solver}
 We have learned how to solve $L_0$ sparse optimization this semester. In class, the original problem is re-writed to a $L_1$ weighted optimized problem and solved by iterative re-weighted $L_1$-norm heuristic solver. But in these image deblurring paper, a different solver is used which looks more specific, easier and faster.
 
-However, to train my skills, I decide to do two small experiments first\footnote{Here, I want to thank Prof. PAN, Jinshan (\url{https://sites.google.com/site/jspanhomepage/}) who provides many useful codes which helps me a lot in finishing this project. }：
+However, to train my skills, I decide to do two small experiments first\footnote{Here, I want to thank Prof. PAN, Jinshan (\url{https://sites.google.com/site/jspanhomepage/}) who provides many useful codes which helps me a lot in finishing this project. }:
 \begin{itemize}
-\item Implement a $L_1$ solver and compare the result with original $L_0$ solver. Similar as the $L_0$ solver presented in these papers\cite{xu2013unnatural}\cite{pan2014deblurring}, $L_1$ can be implemented easily by modify the sub-problem.
+\item Implement a new solver using $L_1$ sparse image prior and compare the result with original $L_0$ solver. 
 \item Implement a $L_0$ solver using the method in class: iterative re-weighted $L_1$-norm heuristic method, and compare with original $L_0$ solver. 
 \end{itemize}
 
-\subsubsection{Implement $L_1$ solver}
-Using $L_1$ prior, the second sub-problem becomes:
+\subsubsection{Implement $L_1$ solver} Inspired by Eqn.~\ref{eqn:l0_sparse_alter}, we split the original $L_1$ regularized optimization problem in two sub-problems:
+\begin{equation}
+\begin{cases}
+\min_{\mathbf{l}} ~&\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l} - \mathbf{g}\|_2^2 \\
+\min_{\mathbf{g}}~& \lambda_1\|\nabla \mathbf{l} - \mathbf{g}\|_2^2 + \lambda_2\|\mathbf{g}\|_{1} 
+\end{cases}
+\label{eqn:our_l1_alter}
+\end{equation}
+Same as $L_0$ sparse image prior \cite{xu2013unnatural}\cite{pan2014deblurring}, the second sub-problem with $L_1$ image prior is also an element-wise optimization problem. Which can be solved quickly by:
+\begin{equation}
+\mathbf{g}_i = 
+\begin{cases}
+\nabla\mathbf{l}_i, &~~ |\nabla\mathbf{l}_i|^2 \geqslant \frac{\lambda_2}{\lambda_1}, \\
+\nabla\mathbf{l}_i, &~~ |\nabla\mathbf{l}_i|^2 \geqslant \frac{\lambda_2}{\lambda_1}, \\
+0, &~~ \text{otherwise}.
+\end{cases}
+\end{equation}
+For kernel estimation step, we use $L_2$ kernel prior which has close-form solution Eqn.~\ref{eqn:l2_kernel_close_form}.
 
 \subsubsection{Implement $L_0$ solver using Iterative Re-weighted $L_1$-norm Heuristic Method}
 
-\subsection{One Step Further}
+In lecture 13 of this semester, we have learned that the $L_0$ optimization problem can be solved by \textbf{iterative re-weighted $\mathbf{L_1}$-norm heuristic method}. Therefore, I want to use this algorithm to implement another solver and compare with the original one.
+
+Based on the algorithm, we only need to multiple a weight on the $L_1$ term and solve the $L_1$ regularized optimization problem. The second sub-problem becomes:
+\begin{equation}
+\begin{split}
+\min_{\mathbf{g}}~~~~~&\lambda_1\|\nabla \mathbf{l} - \mathbf{g}\|_2^2 +  \lambda_2\sum_{i}|\omega_i\mathbf{g_i}|\\
+ \text{subject to}~~&\omega_i = 1 / (\epsilon + |\nabla \mathbf{l}_i|).
+\end{split}
+\label{eqn:our_l1_alter}
+\end{equation}
+Similarly, this problem can be solved easily:
+\begin{equation}
+\mathbf{g}_i = 
+\begin{cases}
+\nabla\mathbf{l}_i, &~~ |\nabla\mathbf{l}_i|^2 \geqslant \frac{\lambda_2}{\lambda_1}, \\
+\nabla\mathbf{l}_i, &~~ |\nabla\mathbf{l}_i|^2 \geqslant \frac{\lambda_2}{\lambda_1}, \\
+0, &~~ \text{otherwise}.
+\end{cases}
+\end{equation}
+
+\subsection{One Step Further: Deblurring with Maximum Saturation Feature}
+
+
 
 
 \section{Numerical Results}
