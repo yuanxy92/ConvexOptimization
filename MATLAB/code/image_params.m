@@ -5,11 +5,11 @@
 % lambda_dark = 4e-3; lambda_grad = 4e-3;
 % lambda_tv = 0.01; lambda_l0 = 2e-3; weight_ring = 1;
 %%
-filename = 'image\flower.jpg'; opts.kernel_size = 35;  saturation = 0;
-lambda_dark = 0;
-% lambda_dark = 4e-3;
-lambda_grad = 4e-3; 
-lambda_tv = 0.001; lambda_l0 = 1e-3; weight_ring = 1;
+% filename = 'image\flower.jpg'; opts.kernel_size = 35;  saturation = 0;
+% lambda_dark = 0;
+% % lambda_dark = 4e-3;
+% lambda_grad = 4e-3; 
+% lambda_tv = 0.001; lambda_l0 = 1e-3; weight_ring = 1;
 %%
 % filename = 'image\summerhouse.jpg'; opts.kernel_size = 95;  saturation = 0;
 % lambda_dark = 4e-3; lambda_grad = 4e-3; 

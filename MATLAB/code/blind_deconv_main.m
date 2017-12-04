@@ -1,14 +1,18 @@
-function [k, lambda_dark, lambda_grad, S] = blind_deconv_main(blur_B, k, ...
-                                    lambda_dark, lambda_grad, threshold, opts)
-% Do single-scale blind deconvolution using the input initializations
-% 
-% I and k. The cost function being minimized is: min_{I,k}
-%  |B - I*k|^2  + \gamma*|k|_2 + lambda_dark*|I|_0 + lambda_grad*|\nabla I|_0
+function [k, lambda_grad, S] = blind_deconv_main(blur_B, k, ...
+    lambda_grad, opts)
+%% Do single-scale blind deconvolution using the input initializations
+% This code is written for ELEC5470 convex optimization project Fall 2017-2018
+% @author: Shane Yuan
+% @date: Dec 4, 2017
+% I write this code basd on Jinshan Pan's open source code. Thanks to
+% Jinshan Pan
 %
+% The cost function being minimized is: min_{I,k}
+% |B - I*k|^2  + \gamma*|k|_2 + lambda_grad*|\nabla I|_0 or
+% |B - I*k|^2  + \gamma*|k|_2 + lambda_grad*|\nabla I|_1
 %% Input:
 % @blur_B: input blurred image 
 % @k: blur kernel
-% @lambda_dark: the weight for the L0 regularization on intensity
 % @lambda_grad: the weight for the L0 regularization on gradient
 %
 % Ouput:
@@ -39,7 +43,9 @@ By = conv2(blur_B_tmp, dy, 'valid');
 for iter = 1:opts.xk_iter
     % sparse deblurring estimate latent sharp image
     S = SparseRestoration(blur_B, k, lambda_grad, 2.0, opts.blind_method);
-    [latent_x, latent_y, threshold] = threshold_pxpy_v1(S, max(size(k)), threshold); 
+    % [latent_x, latent_y, threshold] = threshold_pxpy_v1(S, max(size(k)), threshold); 
+    latent_x = conv2(S, dx, 'valid');
+    latent_y = conv2(S, dy, 'valid');
     k_prev = k;
     % estimate kernel
     k = estimate_psf(Bx, By, latent_x, latent_y, 2, size(k_prev));
@@ -68,13 +74,6 @@ for iter = 1:opts.xk_iter
     subplot(1, 3, 2); imshow(S, []); title('Interim latent image');
     subplot(1, 3, 3); imshow(k, []); title('Estimated kernel');
     drawnow;
-    
-  %imwrite(S,'tmp.png')
-%   kw = k - min(k(:));
-%   kw = kw./max(kw(:));
-%   imwrite(kw,'tmp_kernel.png')
-%   mat_outname=sprintf('test3_blur_55_interim_kernel_new/interim_kernel_%d.mat',iter);
-%   save(mat_outname,'k');
 end
 
 k(k < 0) = 0;  

@@ -1,4 +1,4 @@
-function [kernel, interim_latent] = blind_deconv(y, lambda_dark, lambda_grad, opts)
+function [kernel, interim_latent] = blind_deconv(y, lambda_grad, opts)
 %% multiscale blind deblurring code
 % This code is written for ELEC5470 convex optimization project Fall 2017-2018
 % @author: Shane Yuan
@@ -20,72 +20,74 @@ function [kernel, interim_latent] = blind_deconv(y, lambda_dark, lambda_grad, op
 %        Deblurring Text Images via L0-Regularized Intensity and Gradient
 %        Prior, CVPR, 2014. 
 
-% gamma correct
-if opts.gamma_correct~=1
-    y = y .^ opts.gamma_correct;
-end
-b = zeros(opts.kernel_size);
-
-%%
-ret = sqrt(0.5);
-%%
-maxitr = max(floor(log(5/min(opts.kernel_size))/log(ret)),0);
-num_scales = maxitr + 1;
-fprintf('Maximum iteration level is %d\n', num_scales);
-%%
-retv = ret .^ [0 : maxitr];
-k1list = ceil(opts.kernel_size * retv);
-k1list = k1list+(mod(k1list, 2) == 0);
-k2list =ceil(opts.kernel_size * retv);
-k2list = k2list+(mod(k2list, 2) == 0);
-
-% derivative filters
-dx = [-1 1; 0 0];
-dy = [-1 0; 1 0];
-
-% blind deconvolution - multiscale processing
-for s = num_scales : (-1) : 1
-    if (s == num_scales)
-        %%
-        % at coarsest level, initialize kernel
-        ks = init_kernel(k1list(s));
-        k1 = k1list(s);
-        k2 = k1; % always square kernel assumed
-    else
-        % upsample kernel from previous level to next finer level
-        k1 = k1list(s);
-        k2 = k1; % always square kernel assumed
-        % resize kernel from previous level
-        ks = resizeKer(ks,1/ret,k1list(s),k2list(s));
-    end;
-    %
-    cret = retv(s);
-    ys = downSmpImC(y, cret);
-    fprintf('Processing scale %d/%d; kernel size %dx%d; image size %dx%d\n', ...
-            s, num_scales, k1, k2, size(ys,1), size(ys,2));
-    % Useless operation
-    if (s == num_scales)
-        [~, ~, threshold]= threshold_pxpy_v1(ys,max(size(ks)));
+    % gamma correct
+    if opts.gamma_correct~=1
+        y = y .^ opts.gamma_correct;
     end
-    % optimization in this scale
-    [ks, lambda_dark, lambda_grad, interim_latent] = blind_deconv_main(ys, ks, lambda_dark,...
-        lambda_grad, threshold, opts);
-    % center the kernel
-    ks = adjust_psf_center(ks);
-    ks(ks(:)<0) = 0;
-    sumk = sum(ks(:));
-    ks = ks./sumk;
-    % denoise kernel
-    if (s == 1)
-        kernel = ks;
-        if opts.k_thresh>0
-            kernel(kernel(:) < max(kernel(:))/opts.k_thresh) = 0;
+    b = zeros(opts.kernel_size);
+
+    %%
+    ret = sqrt(0.5);
+    %%
+    maxitr = max(floor(log(5/min(opts.kernel_size))/log(ret)),0);
+    num_scales = maxitr + 1;
+    fprintf('Maximum iteration level is %d\n', num_scales);
+    %%
+    retv = ret .^ [0 : maxitr];
+    k1list = ceil(opts.kernel_size * retv);
+    k1list = k1list+(mod(k1list, 2) == 0);
+    k2list =ceil(opts.kernel_size * retv);
+    k2list = k2list+(mod(k2list, 2) == 0);
+
+    % derivative filters
+    dx = [-1 1; 0 0];
+    dy = [-1 0; 1 0];
+
+    % blind deconvolution - multiscale processing
+    for s = num_scales : (-1) : 1
+        if (s == num_scales)
+            %%
+            % at coarsest level, initialize kernel
+            ks = init_kernel(k1list(s));
+            k1 = k1list(s);
+            k2 = k1; % always square kernel assumed
         else
-            kernel(kernel(:) < 0) = 0;
+            % upsample kernel from previous level to next finer level
+            k1 = k1list(s);
+            k2 = k1; % always square kernel assumed
+            % resize kernel from previous level
+            ks = resizeKer(ks,1/ret,k1list(s),k2list(s));
+        end;
+        %
+        cret = retv(s);
+        ys = downSmpImC(y, cret);
+        fprintf('Processing scale %d/%d; kernel size %dx%d; image size %dx%d\n', ...
+                s, num_scales, k1, k2, size(ys,1), size(ys,2));
+        % optimization in this scale
+        [ks, lambda_grad, interim_latent] = blind_deconv_main(ys, ks,...
+            lambda_grad, opts);
+        % center the kernel
+        ks = adjust_psf_center(ks);
+        ks(ks(:)<0) = 0;
+        sumk = sum(ks(:));
+        ks = ks./sumk;
+        % denoise kernel
+        if (s == 1)
+            kernel = ks;
+            if opts.k_thresh > 0
+                kernel(kernel(:) < max(kernel(:))/opts.k_thresh) = 0;
+            else
+                kernel(kernel(:) < 0) = 0;
+            end
+            kernel = kernel / sum(kernel(:));
         end
-        kernel = kernel / sum(kernel(:));
+        % output intermediate
+        if opts.output_intermediate == 1
+            imwrite(interim_latent, [opts.outdir, sprintf('inter_image_%2d.png', s)]);
+            kw = ks ./ max(ks(:));
+            imwrite(kw, [opts.outdir, sprintf('inter_kernel_%2d.png', s)]);
+        end
     end
-end
 
 end
 
