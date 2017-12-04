@@ -2,6 +2,8 @@
 *.asv
 *.pdf
 *.zip
-*.jpg
-*.png
 cvx/
+MATLAB/cvpr16_deblurring_code_v1
+MATLAB/text_deblurring_code
+MATLAB/code/results
+MATLAB/code/image
