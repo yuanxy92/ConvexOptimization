@@ -1,167 +1,72 @@
+%% Motion Blurry Image Restoration
+% This code is written for ELEC5470 convex optimization project Fall 2017-2018
+% @author: Shane Yuan
+% @date: Dec 4, 2017
+% I write this code basd on Jinshan Pan's open source code, which helps me 
+% a lot. Thanks to Jinshan Pan
+%
+%% clear and add path
 clc;
 clear;
 close all;
 addpath(genpath('image'));
 addpath(genpath('utils'));
-opts.prescale = 1; %%downsampling
-opts.xk_iter = 5; %% the iterations
-opts.gamma_correct = 1.0;
+%% load image params
+image_params;
+%% set parameter
+opts.prescale = 1; 
+opts.xk_iter = 5; %% max iterations
+opts.gamma_correct = 1;
 opts.k_thresh = 20;
-%% Note:
-%% lambda_tv, lambda_l0, weight_ring are non-necessary, they are not used in kernel estimation.
-%%
-% filename = 'image\7_patch_use.png'; opts.kernel_size = 85;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;
-% lambda_tv = 0.01; lambda_l0 = 2e-3; weight_ring = 1;
-%%
-% filename = 'image\flower.jpg'; opts.kernel_size = 35;  saturation = 0;
-% lambda_dark = 0;
-% % lambda_dark = 4e-3;
-% lambda_grad = 4e-3; 
-% lambda_tv = 0.001; lambda_l0 = 1e-3; weight_ring = 1;
-%%
-% filename = 'image\summerhouse.jpg'; opts.kernel_size = 95;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3; 
-% lambda_tv = 0.001; lambda_l0 = 1e-3; weight_ring = 1;
-%%
-% filename = 'image\postcard.png'; opts.kernel_size = 115;  saturation =0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 2.2;
-% lambda_tv = 0.0005; lambda_l0 = 5e-4; weight_ring = 1;
-% filename = 'image\boat.jpg'; opts.kernel_size = 35;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 2.2;
-% lambda_tv = 0.0005; lambda_l0 = 5e-4; weight_ring = 1;
-% filename = 'image\flower_blurred.png'; opts.kernel_size = 55;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 2.2;
-% lambda_tv = 0.001; lambda_l0 = 2e-3; weight_ring = 1;
-% filename = 'image\wall.png'; opts.kernel_size = 65;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.0001; lambda_l0 = 2e-3; weight_ring = 0;
-%%
-% filename = 'image\blurry_2_small.png'; opts.kernel_size = 35;  saturation = 1;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 2e-3; weight_ring = 1;
-% filename = 'image\blurry_7.png'; opts.kernel_size = 65;  saturation = 1;
-% lambda_dark = 0; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 2e-3; weight_ring = 1;
-% filename = 'image\my_test_car6.png'; opts.kernel_size = 95;  saturation = 1;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% filename = 'BlurryImages\Blurry4_9.png'; opts.kernel_size = 99;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3; opts.gamma_correct = 1.0;
-% lambda_tv = 0.002; lambda_l0 = 1e-3; weight_ring = 0;
-%
-% filename = 'BlurryImages\Blurry4_6.png'; opts.kernel_size = 41;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3; opts.gamma_correct = 1.0;
-% lambda_tv = 0.002; lambda_l0 = 1e-3; weight_ring = 0;
-% filename = 'image\toy.png'; opts.kernel_size = 101;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
-% filename = 'image\Blurry2_10.png'; opts.kernel_size = 105;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
-% filename = 'image\im05_ker04_blur.png'; opts.kernel_size = 27;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
-% filename = 'image\IMG_1240_blur.png'; opts.kernel_size = 45;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
-%%
-% filename = 'image\IMG_0650_small_patch.png'; opts.kernel_size = 65;  saturation = 1;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
-%%
-% filename = 'image\IMG_0664_small_patch.png'; opts.kernel_size = 65;  saturation = 1;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
-%% For the first figure
-
-% filename = 'image\real_leaffiltered.png'; opts.kernel_size = 65;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 2.2;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1; % Gaussian filters
-
-%%
-% filename = 'image\IMG_4548_small.png'; opts.kernel_size = 35;  saturation = 1;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1; % Gaussian filters
-%%
-% filename = 'image\las_vegas_saturated.png'; opts.kernel_size = 99;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
-%%
-% filename = 'image\IMG_4561.JPG'; opts.kernel_size = 65;  saturation = 1;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
-%%
-% filename = 'image\IMG_4355_small.png'; opts.kernel_size = 45;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
-%%
-%
-% filename = 'image\IMG_4528_patch.png'; opts.kernel_size = 75;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
-%%
-% filename = 'image\IMG_4528_patch.png'; opts.kernel_size = 75;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
-%%
-% filename = 'image\26.blurred.jpg'; opts.kernel_size = 45;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
-% %%
-% filename = 'image\26.png'; opts.kernel_size = 65;  saturation = 1;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 2.2;
-%%
-filename = 'image\real_blur_img3.png'; opts.kernel_size = 35;  saturation = 0;
-lambda_dark = 0; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
-%%
-% filename = 'image\real_img2.png'; opts.kernel_size = 25;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.003; lambda_l0 = 5e-4; weight_ring = 1;
-%%
-%===================================
+% non-blind deblurring method, support 
+% L0: L0 sparse image prior, use optimization proposed by Li Xu 
+% http://www.cse.cuhk.edu.hk/~leojia/projects/l0deblur/
+% L1: L1 sparse image prior, implemented by me
+% L0_IRL1: L0 sparse image prior, implemented by me, use iterative
+% reweighted L1 norm which discussed in class
+opts.blind_method = 'L0_IRL1';
+% non-blind deblurring method, support TV-L2 and hyper-laplacian (only windows
+% executable code is provided for hyper-laplacian method, thanks to Qi
+% Shan, Jiaya Jia and Aseem Agarwala 
+% http://www.cse.cuhk.edu.hk/~leojia/programs/deconvolution/deconvolution.htm)
+opts.nonblind_method = 'hyper';
+opts.outdir = 'results/flower/';
 y = imread(filename);
-% y = y(3:end-2,3:end-2,:);
-% y = imfilter(y,fspecial('gaussian',5,1),'same','replicate'); 
-isselect = 0; %false or true
-if isselect ==1
-    figure, imshow(y);
-    %tips = msgbox('Please choose the area for deblurring:');
-    fprintf('Please choose the area for deblurring:\n');
-    h = imrect;
-    position = wait(h);
-    close;
-    B_patch = imcrop(y,position);
-    y = (B_patch);
-else
-    y = y;
-end
-if size(y,3)==3
+% make out dir
+mkdir(opts.outdir);
+if size(y,3) == 3
     yg = im2double(rgb2gray(y));
 else
     yg = im2double(y);
 end
+y = im2double(y);
+%% blind deblurring step
 tic;
 [kernel, interim_latent] = blind_deconv(yg, lambda_dark, lambda_grad, opts);
 toc
-%% Algorithm is done!
-%% ============Non-blind deconvolution ((Just use text deblurring methods))====================%%
-y = im2double(y);
-%% Final Deblur: 
-if ~saturation
-    %% 1. TV-L2 denoising method
+%% non blind deblurring step
+% write k into file
+k = kernel ./ max(kernel(:));
+imwrite(k, [opts.outdir, 'kernel.png']);
+if strcmp(opts.nonblind_method, 'TV-L2')
+    % TV-L2 denoising method
     Latent = ringing_artifacts_removal(y, kernel, lambda_tv, lambda_l0, weight_ring);
-else
-    %% 2. Whyte's deconvolution method (For saturated images)
-    Latent = whyte_deconv(y, kernel);
+    imwrite(Latent, [opts.outdir, 'deblurred.png']);
+else if strcmp(opts.nonblind_method, 'hyper') % only windows executable code is provided
+        % hyper laplacian method
+        kernelname = [opts.outdir, 'kernel.png'];
+        blurname = 'temp.png';
+        imwrite(y, blurname);
+        sharpname = [opts.outdir, 'deblurred.png'];
+        command = sprintf('deconv.exe %s %s %s 3e-2 1 0.04 1', blurname, kernelname, sharpname);
+        system(command);
+        delete(blurname);
+        Latent = imread(sharpname);
+    else
+        fprintf('Only hyper and TV-L2 are support for non blind deblur!');
+        exit(-1);
+    end
 end
-figure; imshow(Latent)
-%%
-k = kernel - min(kernel(:));
-k = k./max(k(:));
-imwrite(k,['results\' filename(7:end-4) '_kernel.png']);
-imwrite(Latent,['results\' filename(7:end-4) '_result.png']);
-imwrite(interim_latent,['results\' filename(7:end-4) '_interim_result.png']);
-%%
-%% ============Use Cho et al., ICCV 11 for non-blind deconvolution (For saturated images???)====================%%
-%deblurred0 = deconv_outlier(y, kernel, 5/255, 0.003);
+figure; imshow(Latent);
+
+% imwrite(interim_latent, ['results\' filename(7:end-4) '_interim_result.png']);
