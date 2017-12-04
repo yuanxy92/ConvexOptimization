@@ -292,7 +292,7 @@ In this report, I will focus on sparse gradient priors, give more details of the
 Before introducing my work, I give some drawbacks of existing algorithms from the optimization perspective (not image processing perspective) as this is a report of convex optimization course.
 
 \subsection{No Convergence Criterion}
-Usually blind deblurring algorithms have no clear convergence criterion. I think the main reason is that it is extremely difficult to give a accurate quality score of the deblurred image or blur kernel. Therefore, many algorithms just fix the iteration numbers, as shown in Fig.~\ref{fig:optimization_details}. The left column and middle column are $L_0$ sparse prior, which convergence very fast. Usually only $5$ iterations are need. However, the drawback is obviously, too. Because of lacking stop criterion, there is no guarantee that the result is global/local optimal.
+Usually blind deblurring algorithms have no clear convergence criterion. I think the main reason is that it is extremely difficult to give a accurate quality score of the deblurred image or blur kernel. Therefore, many algorithms just fix the iteration numbers, as shown in Fig.~\ref{fig:optimization_details}. The left column and middle column are $L_0$ sparse prior, which convergence very fast. Usually only $5$ iterations are need. However, the drawback is obviously, too. Because of lacking stop criterion, there is no guarantee that the result is global/local optimal. 
 \begin{figure}[h!]
 \centering
 \includegraphics[width = 1\textwidth]{pic/algorithms.png}
@@ -324,12 +324,23 @@ In this section, I will present some new contributions of my report.
 \subsection{New Implementation of $L_0$ Sparse Solver}
 We have learned how to solve $L_0$ sparse optimization this semester. In class, the original problem is re-writed to a $L_1$ weighted optimized problem and solved by iterative re-weighted $L_1$-norm heuristic solver. But in these image deblurring paper, a different solver is used which looks more specific, easier and faster.
 
-However, to train my skills, I decide to do two small experiment first\footnote{Here, I want to thank Prof. PAN, Jinshan (\url{https://sites.google.com/site/jspanhomepage/}) who provides many useful codes which helps me a lot in finishing this project. } :
-\begin{enumerate}
+However, to train my skills, I decide to do two small experiments first\footnote{Here, I want to thank Prof. PAN, Jinshan (\url{https://sites.google.com/site/jspanhomepage/}) who provides many useful codes which helps me a lot in finishing this project. }：
+\begin{itemize}
 \item Implement a $L_1$ solver and compare the result with original $L_0$ solver. Similar as the $L_0$ solver presented in these papers\cite{xu2013unnatural}\cite{pan2014deblurring}, $L_1$ can be implemented easily by modify the sub-problem.
 \item Implement a $L_0$ solver using the method in class: iterative re-weighted $L_1$-norm heuristic method, and compare with original $L_0$ solver. 
-\end{enumerate}
+\end{itemize}
 
+\subsubsection{Implement $L_1$ solver}
+Using $L_1$ prior, the second sub-problem becomes:
+
+\subsubsection{Implement $L_0$ solver using Iterative Re-weighted $L_1$-norm Heuristic Method}
+
+\subsection{One Step Further}
+
+
+\section{Numerical Results}
+
+\section{Conclusion}
 
 % http://www.michaelshell.org/tex/ieeetran/bibtex/
 \newpage
