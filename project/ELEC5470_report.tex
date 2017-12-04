@@ -302,7 +302,7 @@ Usually blind deblurring algorithms have no clear convergence criterion. I think
 \end{figure}
 
 \subsection{Different Objective Functions in Estimating Kernel and Final Sharp Image}
-As I mentioned in Section.~\ref{sec:introduction}, blind deblurring can be divided two steps: 1) solve Eqn.~\ref{eqn:blind_with_prior_alternate} to get a good kernel. 2) use the solved kernel to get final sharp image by solving Eqn.~\ref{eqn:non_blind_with_prior}. The image prior $\phi(\mathbf{l})$ used in Eqn.~\ref{eqn:non_blind_with_prior} and Eqn.~\ref{eqn:blind_with_prior_alternate} are different, which looks weird. 
+As I mentioned in Section.~\ref{sec:introduction} (red words), blind deblurring can be divided two steps: 1) solve Eqn.~\ref{eqn:blind_with_prior_alternate} to get a good kernel. 2) use the solved kernel to get final sharp image by solving Eqn.~\ref{eqn:non_blind_with_prior}. The image prior $\phi(\mathbf{l})$ used in Eqn.~\ref{eqn:non_blind_with_prior} and Eqn.~\ref{eqn:blind_with_prior_alternate} are different, which looks weird. 
 
 For example, the $L_0$ deblurring paper, $\phi(\mathbf{l}) = \|\nabla \mathbf{l} \|_0$ in blind step and $\phi(\mathbf{l}) = \|\nabla \mathbf{l} \|_{0.5}$ in non-blind step. The intermediate $L_0$ regularized sharp image is shown Fig.~\ref{fig:L0_deblur_intermediate}(b). The gradient map of an natural image should not be $L_0$ sparse, however, it is a very effective prior to help estimate kernel.
 \begin{figure}[h!]

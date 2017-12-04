@@ -2,8 +2,7 @@ clc;
 clear;
 close all;
 addpath(genpath('image'));
-addpath(genpath('whyte_code'));
-addpath(genpath('cho_code'));
+addpath(genpath('utils'));
 opts.prescale = 1; %%downsampling
 opts.xk_iter = 5; %% the iterations
 opts.gamma_correct = 1.0;
@@ -16,12 +15,14 @@ opts.k_thresh = 20;
 % lambda_tv = 0.01; lambda_l0 = 2e-3; weight_ring = 1;
 %%
 % filename = 'image\flower.jpg'; opts.kernel_size = 35;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3; 
+% lambda_dark = 0;
+% % lambda_dark = 4e-3;
+% lambda_grad = 4e-3; 
 % lambda_tv = 0.001; lambda_l0 = 1e-3; weight_ring = 1;
 %%
-filename = 'image\summerhouse.jpg'; opts.kernel_size = 95;  saturation = 0;
-lambda_dark = 4e-3; lambda_grad = 4e-3; 
-lambda_tv = 0.001; lambda_l0 = 1e-3; weight_ring = 1;
+% filename = 'image\summerhouse.jpg'; opts.kernel_size = 95;  saturation = 0;
+% lambda_dark = 4e-3; lambda_grad = 4e-3; 
+% lambda_tv = 0.001; lambda_l0 = 1e-3; weight_ring = 1;
 %%
 % filename = 'image\postcard.png'; opts.kernel_size = 115;  saturation =0;
 % lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 2.2;
@@ -110,9 +111,9 @@ lambda_tv = 0.001; lambda_l0 = 1e-3; weight_ring = 1;
 % filename = 'image\26.png'; opts.kernel_size = 65;  saturation = 1;
 % lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 2.2;
 %%
-% filename = 'image\real_blur_img3.png'; opts.kernel_size = 35;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
+filename = 'image\real_blur_img3.png'; opts.kernel_size = 35;  saturation = 0;
+lambda_dark = 0; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
+lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
 %%
 % filename = 'image\real_img2.png'; opts.kernel_size = 25;  saturation = 0;
 % lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;

@@ -39,14 +39,8 @@ By = conv2(blur_B_tmp, dy, 'valid');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 
 for iter = 1:opts.xk_iter
-    %%
-   if lambda_dark~=0
-       S = L0Deblur_dark_chanel(blur_B_w, k, lambda_dark, lambda_grad, 2.0);
-       S = S(1:H,1:W,:);
-   else
-       %% L0 deblurring
-       S = L0Restoration(blur_B, k, lambda_grad, 2.0);
-   end
+   %% L0 deblurring
+   S = L0Restoration(blur_B, k, lambda_grad, 2.0);
    %% Necessary for refining gradient ???
    %
   [latent_x, latent_y, threshold]= threshold_pxpy_v1(S,max(size(k)),threshold); 
