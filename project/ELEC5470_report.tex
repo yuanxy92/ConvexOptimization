@@ -8,11 +8,12 @@
 \usepackage{subfig}
 \usepackage{amssymb}
 \usepackage{amsmath} 
+\usepackage{xcolor}
 \usepackage[colorlinks,linkcolor=red]{hyperref}
 \begin{document}
 
 % Do not put math or special symbols in the title.
-\title{Final Project of ELEC5470 FALL 2017 \\ Optimization in Image Deblurring \\ Initial Proposal}
+\title{Final Project of ELEC5470 FALL 2017 \\ Optimization in Image Deblurring }
 
 \author{Xiaoyun~Yuan,~20322404}
 
@@ -40,6 +41,7 @@ Optimization, Image Deblurring, Prior
 \IEEEpeerreviewmaketitle
 
 \section{Introduction}
+\label{sec:introduction}
 Nowadays, smart phone has become the digital hub of everyone's daily life, and camera is one of the most important modules on smart phones. However, limited by the space of smart phones, the smart phone camera optic system is often very simple and CMOS size is usually very small. That means the image quality is easily affected environment, for example, low light condition leads to severe noise, camera shaking and long exposure time causes uncomfortable blur effect. In this report, I focus on how to remove the image blur effects caused by camera shaking.
 
 Image deblurring is a fundamental computer vision research problem. Now, there are two different ways to solve the image deblurring problem: 1) traditional convolutional model approach; 2) neural network approach. In this report, I mainly focus on the first approach and give some brief introductions of the second approach.
@@ -55,7 +57,7 @@ where $\mathbf{b}$, $\mathbf{l}$ and $\mathbf{k}$ are the blurry image, latent s
 \mathcal{F}(\mathbf{b}) = \mathcal{F}(\mathbf{l}) \cdot \mathcal{F}(\mathbf{k}) + \mathcal{F}(\mathbf{n}),
 \label{eqn:convolutional_blur_model_frequency}
 \end{equation}
-where $\mathcal{F}(\cdot)$ denotes the Fourier transform.
+where $\mathcal{F}(\cdot)$ denotes the Fourier transform, and $\cdot$ denotes element-wise product.
 \begin{figure}[h!]
 \centering
 \includegraphics[width = 1\textwidth]{pic/convolutional_model.png}
@@ -101,7 +103,7 @@ To solve the problem is Fig.~\ref*{fig:simple_inverse_filter}(b), existing state
 \label{eqn:blind_with_prior}
 \end{equation}
 
-Usually, Eqn.~\ref{eqn:blind_with_prior} will be split into two minimization problems and solve  $\mathbf{l}$ and $\mathbf{k}$ alternately:
+In blind deblurring, Eqn.~\ref{eqn:blind_with_prior} will be split into two minimization problems and solve  $\mathbf{l}$ and $\mathbf{k}$ alternately:
 \begin{equation}
 \begin{cases}
 \min_{\mathbf{l}}&\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \| + \lambda\phi(\mathbf{l}) \\
@@ -109,6 +111,8 @@ Usually, Eqn.~\ref{eqn:blind_with_prior} will be split into two minimization pro
 \end{cases}
 \label{eqn:blind_with_prior_alternate}
 \end{equation}
+\textcolor{red}{An important thing to notice: although there are two optimization variables $l,k$ in the optimization problem, the purpose is to get a good $k$ only. After solving this problem, use $k$ to solve non-blind deblurring problem to get the final sharp image. Note that the prior $\phi{\mathbf{l}}$ used in blind and non-blind deblurring are different. I will give more details in section.~\ref{sec:overview_existing}}.
+
 Nowadays, the image are very large. For example, a smart phone with $12$MP could capture $3968 \times 2976$ images, which means usually very large kernels are needed to estimate (larger than $120 \times 120$). To directly estimate a variable with so high dimension is very difficult, so most blind deblurring algorithms choose a multi-scale coarse-to-fine approach: estimating a smalling kernel using low resolution image first and resizing to high resolution as the initial value.
 
 
@@ -125,6 +129,7 @@ The convolutional model looks very beautiful, but solving it is really not easy.
 Until now, the neural network is still a black box to researchers. No one could give a theoretical explanation, so I am not going to talk the details here.
 
 \section{Overview of Existing Work}
+\label{sec:overview_existing}
 In this section, I categorize the deblurring algorithms into $3$ kinds: 1) image priors; 2) kernel priors; 3) neural networks priors, and briefly introduce some representative works in this section.
 
 \subsection{Image Priors}
@@ -273,16 +278,57 @@ The image priors proposed in Section.~\ref{subsec:image_prior} are very simple s
 \end{figure}
 This method is non-iterative and highly parallable, which is friendly to GPU hardware.
 
+\subsection{Summary}
+I have introduced some representative image deblurring works in this section, and Lai \emph{et al.} published a paper which gave a comparative study for single image blind deblurring\cite{lai2016comparative}. In that paper, they systematically analyzed the performance of $13$ representative blind deblurring algorithms using both subjective (via user study) and objective quality measures. Finally, they presented the following observations:
+\begin{itemize}
+\item \textbf{Image priors}: Sparse gradient priors \cite{xu2013unnatural} and intensity \cite{pan2014deblurring} are more reliable and effective than other image priors.
+\item \textbf{Blur models}: The widely used convolutional blur models can not deal with saturated regions and non-Gaussian noise well.
+\item \textbf{Datasets}: Existing methods achieve very good performance on synthetic images. But real blurry images are still difficult to handle.
+\end{itemize}
+
+In this report, I will focus on sparse gradient priors, give more details of the optimization procedures and try to make some improvement.  
 
 \section{Criticism of the Existing Work}
+Before introducing my work, I give some drawbacks of existing algorithms from the optimization perspective (not image processing perspective) as this is a report of convex optimization course.
+
+\subsection{No Convergence Criterion}
+Usually blind deblurring algorithms have no clear convergence criterion. I think the main reason is that it is extremely difficult to give a accurate quality score of the deblurred image or blur kernel. Therefore, many algorithms just fix the iteration numbers, as shown in Fig.~\ref{fig:optimization_details}. The left column and middle column are $L_0$ sparse prior, which convergence very fast. Usually only $5$ iterations are need. However, the drawback is obviously, too. Because of lacking stop criterion, there is no guarantee that the result is global/local optimal.
+\begin{figure}[h!]
+\centering
+\includegraphics[width = 1\textwidth]{pic/algorithms.png}
+\hspace{\fill}
+\caption{Optimization Algorithms Details}
+\label{fig:optimization_details}
+\end{figure}
+
+\subsection{Different Objective Functions in Estimating Kernel and Final Sharp Image}
+As I mentioned in Section.~\ref{sec:introduction}, blind deblurring can be divided two steps: 1) solve Eqn.~\ref{eqn:blind_with_prior_alternate} to get a good kernel. 2) use the solved kernel to get final sharp image by solving Eqn.~\ref{eqn:non_blind_with_prior}. The image prior $\phi(\mathbf{l})$ used in Eqn.~\ref{eqn:non_blind_with_prior} and Eqn.~\ref{eqn:blind_with_prior_alternate} are different, which looks weird. 
+
+For example, the $L_0$ deblurring paper, $\phi(\mathbf{l}) = \|\nabla \mathbf{l} \|_0$ in blind step and $\phi(\mathbf{l}) = \|\nabla \mathbf{l} \|_{0.5}$ in non-blind step. The intermediate $L_0$ regularized sharp image is shown Fig.~\ref{fig:L0_deblur_intermediate}(b). The gradient map of an natural image should not be $L_0$ sparse, however, it is a very effective prior to help estimate kernel.
+\begin{figure}[h!]
+\centering
+\subfloat[blurry image]{\includegraphics[width = 0.3\textwidth]{pic/l0_cosair_blur.png}}
+\hspace{\fill}
+\subfloat[intermediate $L_0$ regularized sharp image]{\includegraphics[width = 0.3\textwidth]{pic/l0_cosair_intermediate.png}}
+\hspace{\fill}
+\subfloat[final deblurred image]{\includegraphics[width = 0.3\textwidth]{pic/l0_cosair_sharp.png}}
+\hspace{\fill}
+\caption{Intermediate Result of $L_0$ Deblurring}
+\label{fig:L0_deblur_intermediate}
+\end{figure}
 
 
 \section{New Contribution}
+In this section, I will present some new contributions of my report. 
 
+\subsection{New Implementation of $L_0$ Sparse Solver}
+We have learned how to solve $L_0$ sparse optimization this semester. In class, the original problem is re-writed to a $L_1$ weighted optimized problem and solved by iterative re-weighted $L_1$-norm heuristic solver. But in these image deblurring paper, a different solver is used which looks more specific, easier and faster.
 
-
- 
- 
+However, to train my skills, I decide to do two small experiment first\footnote{Here, I want to thank Prof. PAN, Jinshan (\url{https://sites.google.com/site/jspanhomepage/}) who provides many useful codes which helps me a lot in finishing this project. } :
+\begin{enumerate}
+\item Implement a $L_1$ solver and compare the result with original $L_0$ solver. Similar as the $L_0$ solver presented in these papers\cite{xu2013unnatural}\cite{pan2014deblurring}, $L_1$ can be implemented easily by modify the sub-problem.
+\item Implement a $L_0$ solver using the method in class: iterative re-weighted $L_1$-norm heuristic method, and compare with original $L_0$ solver. 
+\end{enumerate}
 
 
 % http://www.michaelshell.org/tex/ieeetran/bibtex/

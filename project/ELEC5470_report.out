@@ -5,6 +5,10 @@
 \BOOKMARK [2][-]{subsection.2.1}{Image Priors}{section.2}% 5
 \BOOKMARK [2][-]{subsection.2.2}{Kernel Priors}{section.2}% 6
 \BOOKMARK [2][-]{subsection.2.3}{Neural Networks Priors}{section.2}% 7
-\BOOKMARK [1][-]{section.3}{Criticism of the Existing Work}{}% 8
-\BOOKMARK [1][-]{section.4}{New Contribution}{}% 9
-\BOOKMARK [1][-]{section*.9}{References}{}% 10
+\BOOKMARK [2][-]{subsection.2.4}{Summary}{section.2}% 8
+\BOOKMARK [1][-]{section.3}{Criticism of the Existing Work}{}% 9
+\BOOKMARK [2][-]{subsection.3.1}{No Convergence Criterion}{section.3}% 10
+\BOOKMARK [2][-]{subsection.3.2}{Different Objective Functions in Estimating Kernel and Final Sharp Image}{section.3}% 11
+\BOOKMARK [1][-]{section.4}{New Contribution}{}% 12
+\BOOKMARK [2][-]{subsection.4.1}{New Implementation of L0 Sparse Solver}{section.4}% 13
+\BOOKMARK [1][-]{section*.11}{References}{}% 14
