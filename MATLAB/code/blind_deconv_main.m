@@ -67,13 +67,15 @@ for iter = 1:opts.xk_iter
       lambda_grad = 0;
     end
     %
-    figure(1); 
-    S(S < 0) = 0;
-    S(S > 1) = 1;
-    subplot(1, 3, 1); imshow(blur_B, []); title('Blurred image');
-    subplot(1, 3, 2); imshow(S, []); title('Interim latent image');
-    subplot(1, 3, 3); imshow(k, []); title('Estimated kernel');
-    drawnow;
+    if (opts.draw_inter == 1)
+        figure(1); 
+        S(S < 0) = 0;
+        S(S > 1) = 1;
+        subplot(1, 3, 1); imshow(blur_B, []); title('Blurred image');
+        subplot(1, 3, 2); imshow(S, []); title('Interim latent image');
+        subplot(1, 3, 3); imshow(k, []); title('Estimated kernel');
+        drawnow;
+    end
 end
 
 k(k < 0) = 0;  

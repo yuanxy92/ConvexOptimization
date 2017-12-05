@@ -8,3 +8,6 @@ MATLAB/cvpr16_deblurring_code_v1
 MATLAB/text_deblurring_code
 MATLAB/code/results
 MATLAB/code/image
+MATLAB/data
+MATLAB/code/images/synthetic/blurry
+MATLAB/code/images/synthetic/deblurred

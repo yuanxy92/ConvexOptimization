@@ -19,9 +19,9 @@ opts.k_thresh = 20;
 % lambda_dark = 4e-3; lambda_grad = 4e-3; 
 % lambda_tv = 0.001; lambda_l0 = 1e-3; weight_ring = 1;
 %%
-filename = 'image\summerhouse.jpg'; opts.kernel_size = 95;  saturation = 0;
-lambda_dark = 4e-3; lambda_grad = 4e-3; 
-lambda_tv = 0.001; lambda_l0 = 1e-3; weight_ring = 1;
+% filename = 'image\summerhouse.jpg'; opts.kernel_size = 95;  saturation = 0;
+% lambda_dark = 4e-3; lambda_grad = 4e-3; 
+% lambda_tv = 0.001; lambda_l0 = 1e-3; weight_ring = 1;
 %%
 % filename = 'image\postcard.png'; opts.kernel_size = 115;  saturation =0;
 % lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 2.2;
@@ -82,9 +82,9 @@ lambda_tv = 0.001; lambda_l0 = 1e-3; weight_ring = 1;
 % lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
 % lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1; % Gaussian filters
 %%
-% filename = 'image\las_vegas_saturated.png'; opts.kernel_size = 99;  saturation = 0;
-% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
-% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
+filename = 'image\las_vegas_saturated.png'; opts.kernel_size = 99;  saturation = 0;
+lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
+lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
 %%
 % filename = 'image\IMG_4561.JPG'; opts.kernel_size = 65;  saturation = 1;
 % lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;

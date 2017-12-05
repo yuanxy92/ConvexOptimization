@@ -241,7 +241,7 @@ All the papers in Section.~\ref{subsec:image_prior} use very simple kernel prior
 \caption{Effect of Kernel Noise}
 \label{fig:kernel_noise}
 \end{figure}
-Therefore, some paper propose specific kernel prior, for example, using IMU (inertial measurement sensor) to help estimate the kernel shape. In this report, we introduce a simple optimization based approach:
+Therefore, some paper propose specific kernel prior, for example, using IMU (inertial measurement sensor) to help estimate the kernel shape. In this report, I introduce a simple optimization based approach:
 
 ~\\
 \textbf{\emph{Separable Kernel Prior}}\cite{fang2014separable}: this paper proposed to force the kernel in a curve region by extract the trajectory of the kernel, and the original kernel optimization sub-problem becomes
@@ -330,7 +330,7 @@ However, to train my skills, I decide to do two small experiments first\footnote
 \item Implement a $L_0$ solver using the method in class: iterative re-weighted $L_1$-norm heuristic method, and compare with original $L_0$ solver. 
 \end{itemize}
 
-\subsubsection{Implement $L_1$ solver} Inspired by Eqn.~\ref{eqn:l0_sparse_alter}, we split the original $L_1$ regularized optimization problem in two sub-problems:
+\subsubsection{Implement $L_1$ solver} Inspired by Eqn.~\ref{eqn:l0_sparse_alter}, I split the original $L_1$ regularized optimization problem in two sub-problems:
 \begin{equation}
 \begin{cases}
 \min_{\mathbf{l}} ~&\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l} - \mathbf{g}\|_2^2 \\
@@ -342,18 +342,17 @@ Same as $L_0$ sparse image prior \cite{xu2013unnatural}\cite{pan2014deblurring},
 \begin{equation}
 \mathbf{g}_i = 
 \begin{cases}
-\nabla\mathbf{l}_i, &~~ |\nabla\mathbf{l}_i|^2 \geqslant \frac{\lambda_2}{\lambda_1}, \\
-\nabla\mathbf{l}_i, &~~ |\nabla\mathbf{l}_i|^2 \geqslant \frac{\lambda_2}{\lambda_1}, \\
+\nabla\mathbf{l}_i - \lambda_2 / (2\lambda_1), &~~ \nabla\mathbf{l}_i - \lambda_2 / (2\lambda_1) > 0, \\
+\nabla\mathbf{l}_i + \lambda_2 / (2\lambda_1), &~~ \nabla\mathbf{l}_i + \lambda_2 / (2\lambda_1) < 0, \\
 0, &~~ \text{otherwise}.
 \end{cases}
 \end{equation}
-For kernel estimation step, we use $L_2$ kernel prior which has close-form solution Eqn.~\ref{eqn:l2_kernel_close_form}.
+For kernel estimation step, I use $L_2$ kernel prior which has close-form solution Eqn.~\ref{eqn:l2_kernel_close_form}.
 
 \subsubsection{Implement $L_0$ solver using Iterative Re-weighted $L_1$-norm Heuristic Method}
-
 In lecture 13 of this semester, we have learned that the $L_0$ optimization problem can be solved by \textbf{iterative re-weighted $\mathbf{L_1}$-norm heuristic method}. Therefore, I want to use this algorithm to implement another solver and compare with the original one.
 
-Based on the algorithm, we only need to multiple a weight on the $L_1$ term and solve the $L_1$ regularized optimization problem. The second sub-problem becomes:
+Based on the algorithm, I only need to multiple a weight on the $L_1$ term and solve the $L_1$ regularized optimization problem. The second sub-problem becomes:
 \begin{equation}
 \begin{split}
 \min_{\mathbf{g}}~~~~~&\lambda_1\|\nabla \mathbf{l} - \mathbf{g}\|_2^2 +  \lambda_2\sum_{i}|\omega_i\mathbf{g_i}|\\
@@ -365,11 +364,14 @@ Similarly, this problem can be solved easily:
 \begin{equation}
 \mathbf{g}_i = 
 \begin{cases}
-\nabla\mathbf{l}_i, &~~ |\nabla\mathbf{l}_i|^2 \geqslant \frac{\lambda_2}{\lambda_1}, \\
-\nabla\mathbf{l}_i, &~~ |\nabla\mathbf{l}_i|^2 \geqslant \frac{\lambda_2}{\lambda_1}, \\
+\nabla\mathbf{l}_i - \lambda_2 / (2\lambda_1), &~~ \nabla\mathbf{l}_i - \omega_i\lambda_2 / (2\lambda_1) > 0, \\
+\nabla\mathbf{l}_i + \lambda_2 / (2\lambda_1), &~~ \nabla\mathbf{l}_i + \omega_i\lambda_2 / (2\lambda_1) < 0, \\
 0, &~~ \text{otherwise}.
 \end{cases}
 \end{equation}
+Same as $L_1$ solver, $L_2$ prior is used for kernel estimation.
+
+I conduct an experiment to test the performance of the original $L_0$ solver and our own implemented $L_1$, $L_2$ solvers. The details are in Section.~\ref{sec:exp}.
 
 \subsection{One Step Further: Deblurring with Maximum Saturation Feature}
 
@@ -377,6 +379,32 @@ Similarly, this problem can be solved easily:
 
 
 \section{Numerical Results}
+\label{sec:exp}
+To verify our proposed methods, I conduct three experiments:
+\begin{itemize}
+\item \textbf{Synthetic data}: usually synthetic blurry images are used to give numerical measurements because it is really difficult to calculate accurate quality scores for blind deblurred results without goundtruth sharp image. 
+\item \textbf{Real data}: real blurry data is usually much more difficult than synthetic data. I will show some deblurred results, including successful and failure cases.
+\item \textbf{Noise and parameters}: Study the effects of noise and parameters on the results.
+\end{itemize} 
+ 
+\subsection{Synthetic Data}
+I use $20$ groundtruth images and $7$ kernels from \cite{lai2016comparative}\cite{levin2009understanding} to generate a synthetic blurry image dataset, as shown in Fig.~\ref{fig:synthetic_blur_data}. The blurry image is generated by $\mathbf{b} = \mathbf{l} * \mathbf{k} + \mathbf{n}$, where $\mathbf{n}$ is Gaussian noise.
+
+\begin{figure}[h!]
+\centering
+\subfloat[a part of ground sharp images]{\includegraphics[width = 1\textwidth]{pic/synthetic_blurry_images.png}}
+\hspace{\fill}
+\subfloat[kernels]{\includegraphics[width = 1\textwidth]{pic/synthetic_kernels.png}}
+\hspace{\fill}
+\caption{Synthetic Blurry Image Data}
+\label{fig:synthetic_blur_data}
+\end{figure}
+
+\subsection{Real Data}
+
+
+\subsection{Noise and Parameters}
+
 
 \section{Conclusion}
 

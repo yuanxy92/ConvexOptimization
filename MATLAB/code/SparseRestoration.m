@@ -30,6 +30,10 @@ function S = SparseRestoration(Im, kernel, lambda, kappa, type)
 if ~exist('kappa','var')
     kappa = 2.0;
 end
+if (strcmp(type, 'L1'))
+    lambda = 7.5 * lambda;
+end
+
 % pad image
 H = size(Im,1);    W = size(Im,2);
 Im = wrap_boundary_liu(Im, opt_fft_size([H W]+size(kernel)-1));
