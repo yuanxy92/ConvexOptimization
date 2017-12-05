@@ -317,6 +317,9 @@ For example, the $L_0$ deblurring paper, $\phi(\mathbf{l}) = \|\nabla \mathbf{l}
 \label{fig:L0_deblur_intermediate}
 \end{figure}
 
+\subsection{Only Supporting Simple Image/Kernel Prior}
+Most algorithms solve the optimization problem by splitting the original problem into several sub-problems and try to derive or approximate closed-form solutions for all the sub-problems. Limited by current optimization techniques, only very simple priors like $L_0$, $L_1$, $L2$ can be used. However, these simple priors are not good enough to be a measure of image quality (sharpness).  
+
 
 \section{New Contribution}
 In this section, I will present some new contributions of my report. 
@@ -347,7 +350,7 @@ Same as $L_0$ sparse image prior \cite{xu2013unnatural}\cite{pan2014deblurring},
 0, &~~ \text{otherwise}.
 \end{cases}
 \end{equation}
-For kernel estimation step, I use $L_2$ kernel prior which has close-form solution Eqn.~\ref{eqn:l2_kernel_close_form}.
+For kernel estimation step, I use $L_2$ kernel prior which has closed-form solution Eqn.~\ref{eqn:l2_kernel_close_form}.
 
 \subsubsection{Implement $L_0$ solver using Iterative Re-weighted $L_1$-norm Heuristic Method}
 In lecture 13 of this semester, we have learned that the $L_0$ optimization problem can be solved by \textbf{iterative re-weighted $\mathbf{L_1}$-norm heuristic method}. Therefore, I want to use this algorithm to implement another solver and compare with the original one.
@@ -374,8 +377,33 @@ Same as $L_1$ solver, $L_2$ prior is used for kernel estimation.
 I conduct an experiment to test the performance of the original $L_0$ solver and our own implemented $L_1$, $L_2$ solvers. The details are in Section.~\ref{sec:exp}.
 
 \subsection{One Step Further: Deblurring with Maximum Saturation Feature}
+In this section, I try to design a new image prior with maximum saturation feature\cite{liu2008image}. 
+\subsubsection{Maximum Saturation Feature}
+Maximum saturation feature is proposed by Liu \emph{et al.}, the basic idea behind it is sharp regions tend to have more vivid colors than blurred regions. In this report, I modify the original definition of maximum saturation feature a little and formulate it as follows:
+\begin{equation}
+M(x, y) = \min_{(x, y) \in p}\frac{3 \times \min(R, G, B)}{R + G + B},
+\end{equation}
+where $p$ denotes a small patch with center $(x, y)$. $R$, $G$ and $B$ represent the pixel value of $(x, y)$ in $R, G, B$ channels respectively. If a patch has vivid colors, the value will be small.
 
-
+\subsubsection{Hybrid Objective Function}
+Inspired by the image prior design in \cite{pan2014deblurring}\cite{pan2016blind}, I write the new objective function as follows:
+\begin{equation}
+\min_{\mathbf{l}, \mathbf{k}} \|\mathbf{l} * \mathbf{k} - \mathbf{b}\|_2^2 + \mu\|\mathbf{k}\|_2^2 +
+\lambda\|\nabla \mathbf{l}\|_0 + \gamma \|\text{M}(\mathbf{l})\|_0.
+\label{eqn:ms_objective_function}
+\end{equation}
+Similarly, this objective function can be split into 4 sub-problems:
+\begin{equation}
+\begin{cases}
+\min_{\mathbf{l}} &\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l} - \mathbf{g}\|_2^2 + \gamma_1\|\text{M}(\mathbf{l}) - \mathbf{u}\|_2^2 \\
+\min_{\mathbf{g}} &\lambda_1\|\nabla \mathbf{l} - \mathbf{g}\|_2^2 + \lambda_2\|\mathbf{g}\|_{0} \\
+\min_{\mathbf{u}} &\gamma_1\|\text{M}(\mathbf{l}) - \mathbf{u}\|_2^2 + \gamma_2\|\mathbf{u}\|_{0} \\
+\min_{\mathbf{k}} &\| \nabla\mathbf{b} - \nabla\mathbf{l} \otimes \mathbf{k} \|_2^2 + \mu \|k\|_2^2.
+\end{cases}
+\label{eqn:ms_objective_function_alter}
+\end{equation}
+The second and fourth sub-problems are the same as $L_0$ solver. The third sub-problem has totally the same structure as the second one, and $u$ can be solved element-by-element easily. 
+The only trouble is the first sub-problem, because $\text{M}(\mathbf{l})$ is a non-linear function.
 
 
 \section{Numerical Results}
@@ -401,6 +429,7 @@ I use $20$ groundtruth images and $7$ kernels from \cite{lai2016comparative}\cit
 \end{figure}
 
 \subsection{Real Data}
+Compared with synthetic blurry images, real blurry images is tougher. Because of lacking groundtruth sharp image, not numerical scores can be given, and I will show some representative results here.
 
 
 \subsection{Noise and Parameters}
