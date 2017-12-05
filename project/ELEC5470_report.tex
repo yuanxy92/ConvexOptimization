@@ -203,6 +203,7 @@ The second sub-problem looks difficult but it is an element-wise minimization pr
 \nabla\mathbf{l}_i, &~~ |\nabla\mathbf{l}_i|^2 \geqslant \frac{\lambda_2}{\lambda_1}, \\
 0, &~~ \text{otherwise}.
 \end{cases}
+\label{eqn:l0_solver_original}
 \end{equation}
 
 ~\\
@@ -374,7 +375,11 @@ Similarly, this problem can be solved easily:
 \end{equation}
 Same as $L_1$ solver, $L_2$ prior is used for kernel estimation.
 
-I conduct an experiment to test the performance of the original $L_0$ solver and our own implemented $L_1$, $L_2$ solvers. The details are in Section.~\ref{sec:exp}.
+I conduct an experiment to test the performance of the original $L_0$ solver and my own implemented $L_1$, $L_2$ solvers. The details are in Section.~\ref{sec:exp}. From the experimental results, I find that:
+\begin{itemize}
+\item My $L_0$ implementation based on iterative re-weighted $L_1$-norm heuristic method performs very close to that method proposed in \cite{xu2013unnatural}.
+\item In general $L_0$ image prior has better performance than $L_1$ in image deblurring.
+\end{itemize}
 
 \subsection{One Step Further: Deblurring with Maximum Saturation Feature}
 In this section, I try to design a new image prior with maximum saturation feature\cite{liu2008image}. 
@@ -383,16 +388,24 @@ Maximum saturation feature is proposed by Liu \emph{et al.}, the basic idea behi
 \begin{equation}
 M(x, y) = \min_{(x, y) \in p}\frac{3 \times \min(R, G, B)}{R + G + B},
 \end{equation}
-where $p$ denotes a small patch with center $(x, y)$. $R$, $G$ and $B$ represent the pixel value of $(x, y)$ in $R, G, B$ channels respectively. If a patch has vivid colors, the value will be small.
+where $p$ denotes a small patch with center $(x, y)$. $R$, $G$ and $B$ represent the pixel value of $(x, y)$ in $R, G, B$ channels respectively. If a patch has vivid colors, the value will be small. Fig.~\ref{fig:maximum_saturation_feature} illustrates an example of maximum saturation feature.
+\begin{figure}[h!]
+\centering
+\includegraphics[width = 1\textwidth]{pic/max_sat_feature.png}
+\hspace{\fill}
+\caption{Maximum Saturation Feature}
+\label{fig:maximum_saturation_feature}
+\end{figure}
+
 
 \subsubsection{Hybrid Objective Function}
-Inspired by the image prior design in \cite{pan2014deblurring}\cite{pan2016blind}, I write the new objective function as follows:
+Inspired by the image prior design in \cite{pan2014deblurring}, I write the new objective function as follows:
 \begin{equation}
 \min_{\mathbf{l}, \mathbf{k}} \|\mathbf{l} * \mathbf{k} - \mathbf{b}\|_2^2 + \mu\|\mathbf{k}\|_2^2 +
 \lambda\|\nabla \mathbf{l}\|_0 + \gamma \|\text{M}(\mathbf{l})\|_0.
 \label{eqn:ms_objective_function}
 \end{equation}
-Similarly, this objective function can be split into 4 sub-problems:
+I use $L_0$-norm here because the experiment in Section.~\ref{sec:exp_syn} shows that $L_0$-norm is more effective than $L_1$-norm in blind image deblurring. Similarly, this objective function can be split into 4 sub-problems:
 \begin{equation}
 \begin{cases}
 \min_{\mathbf{l}} &\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l} - \mathbf{g}\|_2^2 + \gamma_1\|\text{M}(\mathbf{l}) - \mathbf{u}\|_2^2 \\
@@ -403,19 +416,20 @@ Similarly, this objective function can be split into 4 sub-problems:
 \label{eqn:ms_objective_function_alter}
 \end{equation}
 The second and fourth sub-problems are the same as $L_0$ solver. The third sub-problem has totally the same structure as the second one, and $u$ can be solved element-by-element easily. 
-The only trouble is the first sub-problem, because $\text{M}(\mathbf{l})$ is a non-linear function.
+The only trouble is the first sub-problem, because $\text{M}(\mathbf{l})$ is a non-linear function. 
 
+To solve it, I need to re-formulate the third term $\gamma_1 \|\text{M}(\mathbf{l}) - \mathbf{u}\|_2^2$ into solvable form. \textcolor{red}{Unfortunately, I still do not know how to make this problem solvable perfectly, however, I search the Internet and find a paper\cite{pan2016blind} which uses dark channel prior as image prior. The dark channel prior is a relaxed version of maximum saturation feature. Only the numerator part is used in dark channel prior, and the function $\text{M}(\mathbf{l})$ becomes affine.}
 
 \section{Numerical Results}
 \label{sec:exp}
-To verify our proposed methods, I conduct three experiments:
+To verify my proposed methods, I conduct two experiments:
 \begin{itemize}
 \item \textbf{Synthetic data}: usually synthetic blurry images are used to give numerical measurements because it is really difficult to calculate accurate quality scores for blind deblurred results without goundtruth sharp image. 
 \item \textbf{Real data}: real blurry data is usually much more difficult than synthetic data. I will show some deblurred results, including successful and failure cases.
-\item \textbf{Noise and parameters}: Study the effects of noise and parameters on the results.
 \end{itemize} 
  
 \subsection{Synthetic Data}
+\label{sec:exp_syn}
 I use $20$ groundtruth images and $7$ kernels from \cite{lai2016comparative}\cite{levin2009understanding} to generate a synthetic blurry image dataset, as shown in Fig.~\ref{fig:synthetic_blur_data}. The blurry image is generated by $\mathbf{b} = \mathbf{l} * \mathbf{k} + \mathbf{n}$, where $\mathbf{n}$ is Gaussian noise.
 
 \begin{figure}[h!]
@@ -428,13 +442,27 @@ I use $20$ groundtruth images and $7$ kernels from \cite{lai2016comparative}\cit
 \label{fig:synthetic_blur_data}
 \end{figure}
 
+We test the original $L_0$ solver \cite{xu2013unnatural} (denoted as `$L_0$') and my two implementations (denoted as `$L_1$' and `$L_0$ IRL1') on this synthetic dataset, and use PSNR to measure the quality of the final deblurred image. The result is shown in Fig.~\ref{fig:exp_syn}.
+
+\begin{figure}[h!]
+\centering
+\subfloat[PSNR on different blur kernels]{\includegraphics[width = 1\textwidth]{pic/psnr_kernel.png}}
+\hspace{\fill}
+\subfloat[PSNR on different ground-truth images]{\includegraphics[width = 1\textwidth]{pic/psnr_image.png}}
+\hspace{\fill}
+\subfloat[Success rate]{\includegraphics[width = 0.43\textwidth]{pic/success_rate.png}}
+\hspace{\fill}
+\subfloat[the 13th ground-truth image]{\includegraphics[width = 0.52\textwidth]{pic/img_13.png}}
+\hspace{\fill}
+\caption{Performance on Synthetic Dataset}
+\label{fig:exp_syn}
+\end{figure}
+
+From Fig.\ref{fig:exp_syn}(a), I find that larger kernel is more difficult to handle than small kernels, such as the 4th kernel with size $27 \times 27$ (Fig.\ref{fig:synthetic_blur_data}(b)). The final PSNR of the 4th kernel is obviously lower than others. Fig.~\ref{fig:exp_syn}(b) shows the average PSNR on the input $20$ images. I can see that some images such as $13$, $15$ have worse performance than other. One of the reasons is that these images have large parts of high frequency contents, as shown in Fig.~\ref{fig:exp_syn}(d). From the success rate Fig.~\ref{fig:exp_syn}(c), I find $L_0$ image prior is more effective than $L_1$ image prior in blind image deblurring, and my $L_0$ implementation using iterative re-weighted $L_1$-norm heuristic method is slightly better than the original implementation using Eqn.~\ref{eqn:l0_solver_original}. Since the dataset is very small, I think it is just a coincidence. 
+
 \subsection{Real Data}
 Compared with synthetic blurry images, real blurry images is tougher. Because of lacking groundtruth sharp image, not numerical scores can be given, and I will show some representative results here.
-
-
-\subsection{Noise and Parameters}
-
-
+ 
 \section{Conclusion}
 
 % http://www.michaelshell.org/tex/ieeetran/bibtex/
