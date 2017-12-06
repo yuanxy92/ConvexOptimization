@@ -422,9 +422,18 @@ To solve it, I need to re-formulate the third term $\gamma_1 \|\text{M}(\mathbf{
 
 However, I do not want to relax so much to change maximum saturation feature prior into dark channel prior, but this paper inspired me to re-formulate the third term in similar way. Instead of calculating $L_2$ error in maximum saturation feature domain, I choose to formulate the maximum saturation feature prior in pixel value domain as follows:
 \begin{equation}
-\min_{\mathbf{l}} \| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l}\|_0 + \tau \|\text{W} \odot \mathbf{v} \|_0 
+\begin{split}
+\min_{\mathbf{l}} ~&\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l}\|_0 + \tau \|\text{W} \odot \mathbf{v} \|_0 \\
+&\text{W}(x, y) = \begin{cases}
+1, &~~ (x, y) \text{is a maximum pixel} \\
+0, &~~ \text{otherwise}
+\end{cases}\\
+\end{split}
 \label{eqn:ms_objective_function_reformulate}
 \end{equation}
+Where $W$ is a mask 
+
+To verify my new algorithm with maximum saturation feature, I conduct an experiment to compare our method with $L_0$ sparse\cite{xu2013unnatural} and the dark channel prior method\cite{pan2016blind}. Since $L_0$ sparse method already works well for synthetic dataset, I use some real blurry image to test these algorithms. Details are in Section.~\ref{sec:exp_real}.
 
 
 \section{Numerical Results}
@@ -468,6 +477,7 @@ We test the original $L_0$ solver \cite{xu2013unnatural} (denoted as `$L_0$') an
 From Fig.\ref{fig:exp_syn}(a), I find that larger kernel is more difficult to handle than small kernels, such as the 4th kernel with size $27 \times 27$ (Fig.\ref{fig:synthetic_blur_data}(b)). The final PSNR of the 4th kernel is obviously lower than others. Fig.~\ref{fig:exp_syn}(b) shows the average PSNR on the input $20$ images. I can see that some images such as $13$, $15$ have worse performance than other. One of the reasons is that these images have large parts of high frequency contents, as shown in Fig.~\ref{fig:exp_syn}(d). From the success rate Fig.~\ref{fig:exp_syn}(c), I find $L_0$ image prior is more effective than $L_1$ image prior in blind image deblurring, and my $L_0$ implementation using iterative re-weighted $L_1$-norm heuristic method is slightly better than the original implementation using Eqn.~\ref{eqn:l0_solver_original}. Since the dataset is very small, I think it is just a coincidence. 
 
 \subsection{Real Data}
+\label{sec:exp_real}
 Compared with synthetic blurry images, real blurry images is tougher. Because of lacking groundtruth sharp image, not numerical scores can be given, and I will show some representative results here.
  
 \section{Conclusion}
