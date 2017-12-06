@@ -82,7 +82,10 @@ opts.k_thresh = 20;
 % lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
 % lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1; % Gaussian filters
 %%
-filename = 'image\las_vegas_saturated.png'; opts.kernel_size = 99;  saturation = 0;
+% filename = 'image\las_vegas_saturated.png'; opts.kernel_size = 99;  saturation = 0;
+% lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
+% lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
+filename = 'image\real\img_03.png'; opts.kernel_size = 45;  saturation = 0;
 lambda_dark = 4e-3; lambda_grad = 4e-3;opts.gamma_correct = 1.0;
 lambda_tv = 0.001; lambda_l0 = 5e-4; weight_ring = 1;
 %%

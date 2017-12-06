@@ -1,4 +1,4 @@
-function [kernel, interim_latent] = blind_deconv(y, lambda_grad, opts)
+function [kernel, interim_latent] = blind_deconv(y, y_color, lambda_grad, opts)
 %% multiscale blind deblurring code
 % This code is written for ELEC5470 convex optimization project Fall 2017-2018
 % @author: Shane Yuan
@@ -23,6 +23,7 @@ function [kernel, interim_latent] = blind_deconv(y, lambda_grad, opts)
     % gamma correct
     if opts.gamma_correct~=1
         y = y .^ opts.gamma_correct;
+        y_color = y_color .^ opts.gamma_correct;
     end
     b = zeros(opts.kernel_size);
 
@@ -61,10 +62,14 @@ function [kernel, interim_latent] = blind_deconv(y, lambda_grad, opts)
         %
         cret = retv(s);
         ys = downSmpImC(y, cret);
+        y_colors = zeros(size(ys, 1), size(ys, 2), 3);
+        for c = 1:3
+            y_colors(:, :, c) = downSmpImC(y_color(:, :, c), cret);
+        end
         fprintf('Processing scale %d/%d; kernel size %dx%d; image size %dx%d\n', ...
                 s, num_scales, k1, k2, size(ys,1), size(ys,2));
         % optimization in this scale
-        [ks, lambda_grad, interim_latent] = blind_deconv_main(ys, ks,...
+        [ks, lambda_grad, interim_latent] = blind_deconv_main(ys, y_colors, ks,...
             lambda_grad, opts);
         % center the kernel
         ks = adjust_psf_center(ks);

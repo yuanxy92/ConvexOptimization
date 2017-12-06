@@ -19,7 +19,7 @@ function [Latent, k] = sparse_deblur(opts)
     % L0_IRL1: L0 sparse image prior, implemented by me, use iterative
     % reweighted L1 norm which discussed in class
     if ~(strcmp(opts.blind_method, 'L0')||strcmp(opts.blind_method, 'L1') ...
-        ||strcmp(opts.blind_method, 'L0_IRL1'))
+        ||strcmp(opts.blind_method, 'L0_IRL1')||strcmp(opts.blind_method, 'L0_MSF'))
         opts.blind_method = 'L0_IRL1';
     end
     % non-blind deblurring method, support TV-L2 and hyper-laplacian (only windows
@@ -40,7 +40,7 @@ function [Latent, k] = sparse_deblur(opts)
     y = im2double(y);
     %% blind deblurring step
     tic;
-    [kernel, interim_latent] = blind_deconv(yg, opts.lambda_grad, opts);
+    [kernel, interim_latent] = blind_deconv(yg, y, opts.lambda_grad, opts);
     toc
     %% non blind deblurring step
     % write k into file

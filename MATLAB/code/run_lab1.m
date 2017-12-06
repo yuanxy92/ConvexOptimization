@@ -4,13 +4,13 @@ clear;
 close all;
 
 
-opts.kernel_size = 55;
+opts.kernel_size = 35;
 opts.gamma_correct = 1;
-opts.blind_method = 'L0_IRL1';
+opts.blind_method = 'L0_MSF';
 opts.nonblind_method = 'hyper';
 opts.output_intermediate = 1;
-opts.filename = 'images/real/img_08.png';   
-opts.outdir = ['results/real_08/', opts.blind_method, '/'];
+opts.filename = 'images/real/img_03.png';   
+opts.outdir = ['results/real_03/', opts.blind_method, '/'];
 % used for blind deblurring
 opts.lambda_l0 = 1e-3; 
 % used for nonblind deblurring

@@ -1,4 +1,4 @@
-function [k, lambda_grad, S] = blind_deconv_main(blur_B, k, ...
+function [k, lambda_grad, S] = blind_deconv_main(blur_B, blur_B_color, k, ...
     lambda_grad, opts)
 %% Do single-scale blind deconvolution using the input initializations
 % This code is written for ELEC5470 convex optimization project Fall 2017-2018
@@ -42,12 +42,15 @@ By = conv2(blur_B_tmp, dy, 'valid');
 % outer loop
 for iter = 1:opts.xk_iter
     % sparse deblurring estimate latent sharp image
-     S = SparseRestoration(blur_B, k, lambda_grad, 2.0, opts.blind_method);
-%    S = deconvL2(blur_B, k, lambda_grad, 200);
-%     S = SparseRestorationIRLS(blur_B, k, lambda_grad, 2.0, opts.blind_method);
-    % [latent_x, latent_y, threshold] = threshold_pxpy_v1(S, max(size(k)), threshold); 
-    latent_x = conv2(S, dx, 'valid');
-    latent_y = conv2(S, dy, 'valid');
+    if (strcmp(opts.blind_method, 'L0_MSF'))
+        S = SparseRestorationMaxSatFeature(blur_B_color, k, lambda_grad, lambda_grad, 2.0);
+    else
+        S = SparseRestoration(blur_B, k, lambda_grad, 2.0, opts.blind_method);
+    end
+    
+    Sg = rgb2gray(S);
+    latent_x = conv2(Sg, dx, 'valid');
+    latent_y = conv2(Sg, dy, 'valid');
     k_prev = k;
     % estimate kernel
     k = estimate_psf(Bx, By, latent_x, latent_y, 2, size(k_prev));
