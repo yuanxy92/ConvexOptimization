@@ -40,6 +40,7 @@ for i = 1:img_num
             % used for nonblind deblurring
             opts.lambda_grad = 4e-3; 
             opts.lambda_tv = 0.001; 
+            opts.k_thresh = 20;
             opts.weight_ring = 1;
             [img_deblurred, k_deblurred] = sparse_deblur(opts);
             imwrite(img_deblurred, sprintf('%s/deblurred_%02d_kernel_%02d_%s.png', ...

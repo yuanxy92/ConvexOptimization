@@ -4,17 +4,19 @@ clear;
 close all;
 
 
-opts.kernel_size = 45;
-opts.gamma_correct = 2.2;
+opts.kernel_size = 55;
+opts.gamma_correct = 1;
 opts.blind_method = 'L0_IRL1';
 opts.nonblind_method = 'hyper';
 opts.output_intermediate = 1;
-opts.filename = 'image/IMG_1240_blur.png';   
-opts.outdir = ['results/car1/', opts.blind_method, '/'];
+opts.filename = 'images/real/img_08.png';   
+opts.outdir = ['results/real_08/', opts.blind_method, '/'];
 % used for blind deblurring
 opts.lambda_l0 = 1e-3; 
 % used for nonblind deblurring
 opts.lambda_grad = 4e-3; 
 opts.lambda_tv = 0.001; 
 opts.weight_ring = 1;
+opts.draw_inter = 1;
+opts.k_thresh = 5;
 sparse_deblur(opts);

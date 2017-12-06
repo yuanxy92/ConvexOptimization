@@ -42,7 +42,9 @@ By = conv2(blur_B_tmp, dy, 'valid');
 % outer loop
 for iter = 1:opts.xk_iter
     % sparse deblurring estimate latent sharp image
-    S = SparseRestoration(blur_B, k, lambda_grad, 2.0, opts.blind_method);
+     S = SparseRestoration(blur_B, k, lambda_grad, 2.0, opts.blind_method);
+%    S = deconvL2(blur_B, k, lambda_grad, 200);
+%     S = SparseRestorationIRLS(blur_B, k, lambda_grad, 2.0, opts.blind_method);
     % [latent_x, latent_y, threshold] = threshold_pxpy_v1(S, max(size(k)), threshold); 
     latent_x = conv2(S, dx, 'valid');
     latent_y = conv2(S, dy, 'valid');

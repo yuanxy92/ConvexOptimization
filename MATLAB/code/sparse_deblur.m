@@ -12,7 +12,6 @@ function [Latent, k] = sparse_deblur(opts)
     %% set parameter
     opts.prescale = 1; 
     opts.xk_iter = 5; %% max iterations
-    opts.k_thresh = 20;
     % non-blind deblurring method, support 
     % L0: L0 sparse image prior, use optimization proposed by Li Xu 
     % http://www.cse.cuhk.edu.hk/~leojia/projects/l0deblur/
