@@ -6,7 +6,7 @@ close all;
 
 opts.kernel_size = 35;
 opts.gamma_correct = 1;
-opts.blind_method = 'L0_MSF';
+opts.blind_method = 'L0_IRL1';
 opts.nonblind_method = 'hyper';
 opts.output_intermediate = 1;
 opts.filename = 'images/real/img_03.png';   

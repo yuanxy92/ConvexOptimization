@@ -45,10 +45,11 @@ I_msf = padarray(I_msf, [floor(patch_size./2) floor(patch_size./2)], 'replicate'
 for m = 1:M
     for n = 1:N  
         patch = I_msf(m:(m+patch_size-1), n:(n+patch_size-1),:);
+        I_patch = I(m:(m+patch_size-1), n:(n+patch_size-1),:);
         [tmp_val, tmp_idx] = min(patch(:));
         J(m,n) = tmp_val;
         [row_ind, col_ind] = ind2sub([patch_size, patch_size], tmp_idx);
-        px_val_rgb(m, n, :) = I(row_ind, col_ind, :);
+        px_val_rgb(m, n, :) = I_patch(row_ind, col_ind, :);
         J_index(m, n, 1) = row_ind;
         J_index(m, n, 2) = col_ind;
     end

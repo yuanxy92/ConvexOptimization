@@ -48,7 +48,12 @@ for iter = 1:opts.xk_iter
         S = SparseRestoration(blur_B, k, lambda_grad, 2.0, opts.blind_method);
     end
     
-    Sg = rgb2gray(S);
+    if size(S, 3) == 3
+        Sg = rgb2gray(S);
+    else
+        Sg = S; 
+    end
+    
     latent_x = conv2(Sg, dx, 'valid');
     latent_y = conv2(Sg, dy, 'valid');
     k_prev = k;
