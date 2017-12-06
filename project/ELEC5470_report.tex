@@ -420,6 +420,11 @@ The only trouble is the first sub-problem, because $\text{M}(\mathbf{l})$ is a n
 
 To solve it, I need to re-formulate the third term $\gamma_1 \|\text{M}(\mathbf{l}) - \mathbf{u}\|_2^2$ into solvable form. \textcolor{red}{Unfortunately, I still do not know how to make this problem solvable perfectly, however, I search the Internet and find a paper\cite{pan2016blind} which uses dark channel prior as image prior. The dark channel prior is a relaxed version of maximum saturation feature. Only the numerator part is used in dark channel prior, and the function $\text{M}(\mathbf{l})$ becomes affine.}
 
+However, I do not want to relax so much to change maximum saturation feature prior into dark channel prior, but this paper inspired me to re-formulate the third term in similar way. Instead of calculating $L_2$ error in maximum saturation feature domain, I choose to formulate the maximum saturation feature prior in pixel value domain as follows:
+\begin{equation}
+\min_{\mathbf{l}} \| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l}\|_0 + \tau \|\text{W} \odot \mathbf{v} \|_0 
+\label{eqn:ms_objective_function_reformulate}
+\end{equation}
 
 
 \section{Numerical Results}
