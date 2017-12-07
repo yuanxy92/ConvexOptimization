@@ -28,12 +28,12 @@
 % As a general rule, do not put math, special symbols or citations
 % in the abstract or keywords.
 \begin{abstract}
-In this report , I present some representative image deblurring algorithms and the convex/non-convex optimization techniques used in these papers. 
+In this report , I present some representative image deblurring algorithms and the convex/non-convex optimization techniques used in these papers. After that, I try to implement my own $L_1$ sparse solver and iterative re-weighted $L_0$ sparse solver and compare with that in papers. Then, I propose to use maximum saturation feature as image prior in blind image deblurring. The experiments show that my solvers works quite well in image deblurring.
 \end{abstract}
 
 % Note that keywords are not normally used for peerreview papers.
 \begin{IEEEkeywords}
-Optimization, Image Deblurring, Prior 
+Optimization, Image Deblurring, Sparse Prior, Maximum Saturation Prior 
 \end{IEEEkeywords}
 
 % For peerreview papers, this IEEEtran command inserts a page break and
@@ -384,11 +384,19 @@ I conduct an experiment to test the performance of the original $L_0$ solver and
 \subsection{One Step Further: Deblurring with Maximum Saturation Feature}
 In this section, I try to design a new image prior with maximum saturation feature\cite{liu2008image}. 
 \subsubsection{Maximum Saturation Feature}
+\label{sec:msf}
 Maximum saturation feature is proposed by Liu \emph{et al.}, the basic idea behind it is sharp regions tend to have more vivid colors than blurred regions. In this report, I modify the original definition of maximum saturation feature a little and formulate it as follows:
 \begin{equation}
-M(x, y) = \min_{(x, y) \in p}\frac{3 \times \min(R, G, B)}{R + G + B},
+\begin{split}
+S_p(x, y) &= \frac{3 \times \min(R, G, B)}{R + G + B} \\
+F_{msf}(x, y) &= \min_{(x, y) \in \mathbf{P}} S_p(x, y)
+\end{split}
 \end{equation}
-where $p$ denotes a small patch with center $(x, y)$. $R$, $G$ and $B$ represent the pixel value of $(x, y)$ in $R, G, B$ channels respectively. If a patch has vivid colors, the value will be small. Fig.~\ref{fig:maximum_saturation_feature} illustrates an example of maximum saturation feature.
+where $S_p$ denotes per-pixel maximum saturation feature and $F_msf$ is the patch based maximum saturation feature which I want to use in this report. $\mathbf{P}$ denotes a small patch with center $(x, y)$. $R$, $G$ and $B$ represent the pixel value of $(x, y)$ in $R, G, B$ channels respectively. 
+I call pixel location $(x_0, y_0)$ selected to represent the patch ($(x_0, y_0)$ has the minimum per-pixel maximum saturation feature in patch $\mathbf{P}$) as a selected pixel.
+If a patch has vivid colors, the value will be small. Fig.~\ref{fig:maximum_saturation_feature} illustrates an example of maximum saturation feature.
+
+
 \begin{figure}[h!]
 \centering
 \includegraphics[width = 1\textwidth]{pic/max_sat_feature.png}
@@ -402,15 +410,15 @@ where $p$ denotes a small patch with center $(x, y)$. $R$, $G$ and $B$ represent
 Inspired by the image prior design in \cite{pan2014deblurring}, I write the new objective function as follows:
 \begin{equation}
 \min_{\mathbf{l}, \mathbf{k}} \|\mathbf{l} * \mathbf{k} - \mathbf{b}\|_2^2 + \mu\|\mathbf{k}\|_2^2 +
-\lambda\|\nabla \mathbf{l}\|_0 + \gamma \|\text{M}(\mathbf{l})\|_0.
+\lambda\|\nabla \mathbf{l}\|_0 + \gamma \|F_{msf}(\mathbf{l})\|_1.
 \label{eqn:ms_objective_function}
 \end{equation}
 I use $L_0$-norm here because the experiment in Section.~\ref{sec:exp_syn} shows that $L_0$-norm is more effective than $L_1$-norm in blind image deblurring. Similarly, this objective function can be split into 4 sub-problems:
 \begin{equation}
 \begin{cases}
-\min_{\mathbf{l}} &\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l} - \mathbf{g}\|_2^2 + \gamma_1\|\text{M}(\mathbf{l}) - \mathbf{u}\|_2^2 \\
+\min_{\mathbf{l}} &\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l} - \mathbf{g}\|_2^2 + \gamma_1\|F_{msf}(\mathbf{l}) - \mathbf{u}\|_2^2 \\
 \min_{\mathbf{g}} &\lambda_1\|\nabla \mathbf{l} - \mathbf{g}\|_2^2 + \lambda_2\|\mathbf{g}\|_{0} \\
-\min_{\mathbf{u}} &\gamma_1\|\text{M}(\mathbf{l}) - \mathbf{u}\|_2^2 + \gamma_2\|\mathbf{u}\|_{0} \\
+\min_{\mathbf{u}} &\gamma_1\|F_{msf}(\mathbf{l}) - \mathbf{u}\|_2^2 + \gamma_2\|\mathbf{u}\|_{1} \\
 \min_{\mathbf{k}} &\| \nabla\mathbf{b} - \nabla\mathbf{l} \otimes \mathbf{k} \|_2^2 + \mu \|k\|_2^2.
 \end{cases}
 \label{eqn:ms_objective_function_alter}
@@ -418,20 +426,25 @@ I use $L_0$-norm here because the experiment in Section.~\ref{sec:exp_syn} shows
 The second and fourth sub-problems are the same as $L_0$ solver. The third sub-problem has totally the same structure as the second one, and $u$ can be solved element-by-element easily. 
 The only trouble is the first sub-problem, because $\text{M}(\mathbf{l})$ is a non-linear function. 
 
-To solve it, I need to re-formulate the third term $\gamma_1 \|\text{M}(\mathbf{l}) - \mathbf{u}\|_2^2$ into solvable form. \textcolor{red}{Unfortunately, I still do not know how to make this problem solvable perfectly, however, I search the Internet and find a paper\cite{pan2016blind} which uses dark channel prior as image prior. The dark channel prior is a relaxed version of maximum saturation feature. Only the numerator part is used in dark channel prior, and the function $\text{M}(\mathbf{l})$ becomes affine.}
+To solve it, I need to re-formulate the third term $\gamma_1 \|F_{msf}(\mathbf{l}) - \mathbf{u}\|_2^2$ into solvable form. \textcolor{red}{Unfortunately, I still do not know how to make this problem solvable perfectly, however, I search the Internet and find a paper\cite{pan2016blind} which uses dark channel prior as image prior. The dark channel prior is a relaxed version of maximum saturation feature. Only the numerator part is used in dark channel prior, and the function $\text{M}(\mathbf{l})$ becomes affine.}
 
-However, I do not want to relax so much to change maximum saturation feature prior into dark channel prior, but this paper inspired me to re-formulate the third term in similar way. Instead of calculating $L_2$ error in maximum saturation feature domain, I choose to formulate the maximum saturation feature prior in pixel value domain as follows:
+However, I do not want to relax so much to change maximum saturation feature prior into dark channel prior, but this dark channel prior paper\cite{pan2016blind} and the $L_1/L_2$ solver paper\cite{krishnan2011blind} inspired me to relax the optimization problem as follows:
 \begin{equation}
 \begin{split}
-\min_{\mathbf{l}} ~&\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l}\|_0 + \tau \|\text{W} \odot \mathbf{v} \|_0 \\
+\min_{\mathbf{l}} ~&\| \mathbf{b} - \mathbf{l} \otimes \mathbf{k} \|_2^2 + \lambda_1 \|\nabla \mathbf{l}\|_2^2 + \tau \|\mathbf{W} \odot (\mathbf{l} - \mathbf{u})\|_2^2 \\
+\min_{\mathbf{u}} ~&\tau_1 \|\mathbf{W} \odot (\mathbf{l} - \mathbf{u}) \|^2_2 + \tau_2 \sum_i| \mathbf{W}_{i = (x, y)}\frac{1}{\mathbf{l}_i^R + \mathbf{l}_i^G + \mathbf{l}_i^B}\min(\mathbf{u}_i^R + \mathbf{u}_i^G + \mathbf{u}_i^B)| \\
 &\text{W}(x, y) = \begin{cases}
-1, &~~ (x, y) \text{is a maximum pixel} \\
-0, &~~ \text{otherwise}
+1, &~~ (x, y) \text{ is a selected pixel} \\
+0, &~~ \text{otherwise}.
 \end{cases}\\
 \end{split}
 \label{eqn:ms_objective_function_reformulate}
 \end{equation}
-Where $W$ is a mask 
+Where $\mathbf{u}$ is a auxiliary variable, $\odot$ denotes the element-wise product and $W$ is a weighted mask calculated from $\mathbf{l}$ in previous iteration. The definition of selected pixel is the Section.~\ref{sec:msf}. I relax the original term in two places to make the problem solvable:
+\begin{itemize}
+\item In each iteration, I fix the denominator of the maximum saturation feature, using pixel values of $\mathbf{l}$ from previous iteration, and the selected pixel mask $\text{W}$ is also calculated from previous iteration.
+\item Instead of calculate the maximum saturation feature on the whole image, I only apply the regularization term on the selected pixel values.
+\end{itemize}
 
 To verify my new algorithm with maximum saturation feature, I conduct an experiment to compare our method with $L_0$ sparse\cite{xu2013unnatural} and the dark channel prior method\cite{pan2016blind}. Since $L_0$ sparse method already works well for synthetic dataset, I use some real blurry image to test these algorithms. Details are in Section.~\ref{sec:exp_real}.
 
@@ -458,7 +471,21 @@ I use $20$ groundtruth images and $7$ kernels from \cite{lai2016comparative}\cit
 \label{fig:synthetic_blur_data}
 \end{figure}
 
-We test the original $L_0$ solver \cite{xu2013unnatural} (denoted as `$L_0$') and my two implementations (denoted as `$L_1$' and `$L_0$ IRL1') on this synthetic dataset, and use PSNR to measure the quality of the final deblurred image. The result is shown in Fig.~\ref{fig:exp_syn}.
+We test the original $L_0$ solver \cite{xu2013unnatural} (denoted as `$L_0$') and my two implementations (denoted as `$L_1$' and `$L_0$ IRL1') on this synthetic dataset, and use PSNR to measure the quality of the final deblurred image. Fig.\ref{fig:exp_syn_show} shows one example of our deblurring algorithms, all the $3$ algorithms make the image sharper than the input one. However, the deblurred image of $L_1$ method has very obvious visual artifacts and the other two look better. The quantitative result is shown in Fig.~\ref{fig:exp_syn}.
+
+\begin{figure}[h!]
+\centering
+\subfloat[blurred image and kernel]{\includegraphics[width = 0.24\textwidth]{pic/synthetic/blurred.png}}
+\hspace{\fill}
+\subfloat[$L_0$ \cite{xu2013unnatural}]{\includegraphics[width = 0.24\textwidth]{pic/synthetic/L0.png}}
+\hspace{\fill}
+\subfloat[$L_1$]{\includegraphics[width = 0.24\textwidth]{pic/synthetic/L1.png}}
+\hspace{\fill}
+\subfloat[$L_0$ IRL1]{\includegraphics[width = 0.24\textwidth]{pic/synthetic/L0_IRL1.png}}
+\hspace{\fill}
+\caption{Example Deblurred Images (Synthetic Dataset)}
+\label{fig:exp_syn_show}
+\end{figure}
 
 \begin{figure}[h!]
 \centering
@@ -476,11 +503,37 @@ We test the original $L_0$ solver \cite{xu2013unnatural} (denoted as `$L_0$') an
 
 From Fig.\ref{fig:exp_syn}(a), I find that larger kernel is more difficult to handle than small kernels, such as the 4th kernel with size $27 \times 27$ (Fig.\ref{fig:synthetic_blur_data}(b)). The final PSNR of the 4th kernel is obviously lower than others. Fig.~\ref{fig:exp_syn}(b) shows the average PSNR on the input $20$ images. I can see that some images such as $13$, $15$ have worse performance than other. One of the reasons is that these images have large parts of high frequency contents, as shown in Fig.~\ref{fig:exp_syn}(d). From the success rate Fig.~\ref{fig:exp_syn}(c), I find $L_0$ image prior is more effective than $L_1$ image prior in blind image deblurring, and my $L_0$ implementation using iterative re-weighted $L_1$-norm heuristic method is slightly better than the original implementation using Eqn.~\ref{eqn:l0_solver_original}. Since the dataset is very small, I think it is just a coincidence. 
 
+
 \subsection{Real Data}
 \label{sec:exp_real}
-Compared with synthetic blurry images, real blurry images is tougher. Because of lacking groundtruth sharp image, not numerical scores can be given, and I will show some representative results here.
- 
+Compared with synthetic blurry images, real blurry images is tougher. Because of lacking groundtruth sharp image, not numerical scores can be given, and I will show some representative results here. I compare my maximum saturation feature algorithm with the original $L_0$ \cite{xu2013unnatural} algorithm and the dark channel prior algorithm\cite{pan2016blind}, the reuslts are in Fig.~\ref{fig:exp_real}.
+\begin{figure}[h!]
+\centering
+\subfloat[blurred]{\includegraphics[width = 0.24\textwidth]{pic/real/img_07.png}}\hspace{\fill}
+\subfloat[$L_0$\cite{xu2013unnatural}]{\includegraphics[width = 0.24\textwidth]{pic/real/img_07_L0.png}}\hspace{\fill}
+\subfloat[dark channel prior\cite{pan2016blind}]{\includegraphics[width = 0.24\textwidth]{pic/real/img_07_dark.png}}\hspace{\fill}
+\subfloat[maximum saturation feature]{\includegraphics[width = 0.24\textwidth]{pic/real/img_07_max.png}}\hspace{\fill}
+\\
+\centering
+\subfloat[blurred]{\includegraphics[width = 0.24\textwidth]{pic/real/img_03.png}}\hspace{\fill}
+\subfloat[$L_0$\cite{xu2013unnatural}]{\includegraphics[width = 0.24\textwidth]{pic/real/img_03_L0.png}}\hspace{\fill}
+\subfloat[dark channel prior\cite{pan2016blind}]{\includegraphics[width = 0.24\textwidth]{pic/real/img_03_dark.png}}\hspace{\fill}
+\subfloat[maximum saturation feature]{\includegraphics[width = 0.24\textwidth]{pic/real/img_03_max.png}}\hspace{\fill}
+\\
+\centering
+\subfloat[blurred]{\includegraphics[width = 0.24\textwidth]{pic/real/img_08.png}}\hspace{\fill}
+\subfloat[$L_0$\cite{xu2013unnatural}]{\includegraphics[width = 0.24\textwidth]{pic/real/img_08_L0.png}}\hspace{\fill}
+\subfloat[dark channel prior\cite{pan2016blind}]{\includegraphics[width = 0.24\textwidth]{pic/real/img_08_dark.png}}\hspace{\fill}
+\subfloat[maximum saturation feature]{\includegraphics[width = 0.24\textwidth]{pic/real/img_08_max.png}}\hspace{\fill}
+\label{fig:exp_real}
+\caption{Performance on Real Dataset}
+\end{figure}
+
+The results show that the real blurred images are really difficult to handle. 
+All the results have obvious visual artifacts, with strong ringings. The $L_0$ solver\cite{xu2013unnatural} fails to recover the flower image (the result is still very blurry). My method with maximum saturation does not seem to work well, and I can not see any improvement (some regions look worse). I think that there may be some problem is my implementation. While the results of state-of-the-art dark prior image deblurring algorithm are better than the others for some challenge cases, especially the flower image.
+
 \section{Conclusion}
+In this report, I survey some representative image deblurring papers and summed up their advantages and disadvantages. After that, I implement my own $L_1$ sparse solver and iterative re-weighted $L_0$ sparse solver, and compare with the original ones proposed in paper. Finally, I make one step further, proposing to use maximum saturation feature as image prior in blind image deblurring. Although I can not find a perfect solver, I implement a relaxed version to solve the optimization. The experiments show that my solvers work pretty well in image deblurring.
 
 % http://www.michaelshell.org/tex/ieeetran/bibtex/
 \newpage

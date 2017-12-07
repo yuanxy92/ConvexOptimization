@@ -11,6 +11,7 @@ I_msf = zeros(size(S, 1), size(S, 2));
 for m = 1:M
     for n = 1:N
         I_msf(m, n) = min(S(m, n, :)) / sum(S(m, n, :));
+%         I_msf(m, n) = min(S(m, n, :));
     end
 end
 
@@ -28,7 +29,7 @@ for m = 1:M
       
         patch2 = S_padd(m:(m+patch_size-1), n:(n+patch_size-1), :);
         
-        if ~isequal(patch2(row_ind, col_ind, :), msf_refine(m, n, :))
+        if patch2(row_ind, col_ind, :) ~= msf_refine(m, n, :)
             patch2(msf_index(m,n, 1), msf_index(m, n, 2), :) = msf_refine(m,n, :);
         end
         for cc = 1:C

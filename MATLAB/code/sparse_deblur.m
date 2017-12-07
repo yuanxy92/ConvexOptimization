@@ -40,7 +40,7 @@ function [Latent, k] = sparse_deblur(opts)
     y = im2double(y);
     %% blind deblurring step
     tic;
-    [kernel, interim_latent] = blind_deconv(yg, y, opts.lambda_grad, opts);
+    [kernel, interim_latent] = blind_deconv(yg, y, opts);
     toc
     %% non blind deblurring step
     % write k into file

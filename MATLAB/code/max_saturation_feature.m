@@ -25,6 +25,7 @@ I_msf = zeros(size(I, 1), size(I, 2));
 for m = 1:M
     for n = 1:N
         I_msf(m, n) = min(I(m, n, :)) / sum(I(m, n, :));
+%         I_msf(m, n) = min(I(m, n, :));
     end
 end
 

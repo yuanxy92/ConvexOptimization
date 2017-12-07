@@ -1,5 +1,5 @@
-function [k, lambda_grad, S] = blind_deconv_main(blur_B, blur_B_color, k, ...
-    lambda_grad, opts)
+function [k, S, opts] = blind_deconv_main(blur_B, blur_B_color, k, ...
+    opts)
 %% Do single-scale blind deconvolution using the input initializations
 % This code is written for ELEC5470 convex optimization project Fall 2017-2018
 % @author: Shane Yuan
@@ -43,9 +43,10 @@ By = conv2(blur_B_tmp, dy, 'valid');
 for iter = 1:opts.xk_iter
     % sparse deblurring estimate latent sharp image
     if (strcmp(opts.blind_method, 'L0_MSF'))
-        S = SparseRestorationMaxSatFeature(blur_B_color, k, lambda_grad, lambda_grad, 2.0);
+        S = SparseRestorationMaxSatFeature(blur_B_color, k, opts.lambda_msf, opts.lambda_grad, 2.0);
+        S = S(1:H,1:W,:);
     else
-        S = SparseRestoration(blur_B, k, lambda_grad, 2.0, opts.blind_method);
+        S = SparseRestoration(blur_B, k, opts.lambda_grad, 2.0, opts.blind_method);
     end
     
     if size(S, 3) == 3
@@ -53,9 +54,13 @@ for iter = 1:opts.xk_iter
     else
         Sg = S; 
     end
-    
-    latent_x = conv2(Sg, dx, 'valid');
-    latent_y = conv2(Sg, dy, 'valid');
+    if iter == 1
+        [latent_x, latent_y, threshold]= threshold_pxpy_v1(Sg,max(size(k))); 
+    else
+        [latent_x, latent_y, threshold]= threshold_pxpy_v1(Sg,max(size(k)),threshold); 
+    end
+    %latent_x = conv2(Sg, dx, 'valid');
+    %latent_y = conv2(Sg, dy, 'valid');
     k_prev = k;
     % estimate kernel
     k = estimate_psf(Bx, By, latent_x, latent_y, 2, size(k_prev));
@@ -71,10 +76,16 @@ for iter = 1:opts.xk_iter
     k=k/sum(k(:));
 
     % update parameters
-    if lambda_grad~=0;
-      lambda_grad = max(lambda_grad/1.1, 1e-4);
+    if opts.lambda_grad ~= 0;
+        opts.lambda_grad = max(opts.lambda_grad/1.1, 1e-4);
     else
-      lambda_grad = 0;
+        opts.lambda_grad = 0;
+    end
+    %% Parameter updating
+    if opts.lambda_msf ~= 0;
+        opts.lambda_msf = max(opts.lambda_msf/1.1, 1e-4);
+    else
+        opts.lambda_msf = 0;
     end
     %
     if (opts.draw_inter == 1)
